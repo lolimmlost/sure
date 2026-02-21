@@ -18,16 +18,20 @@ class Import::UploadsController < ApplicationController
       handle_qif_upload
     elsif @import.is_a?(SureImport)
       update_sure_import_upload
-    elsif csv_valid?(csv_str)
-      @import.account = import_account_id.present? ? accessible_accounts.find(import_account_id) : nil
-      @import.assign_attributes(raw_file_str: csv_str, col_sep: upload_params[:col_sep])
+    else
+      effective_col_sep = auto_configured_import? ? @import.col_sep : upload_params[:col_sep]
+
+      if csv_valid?(csv_str, col_sep: effective_col_sep)
+        @import.account = import_account_id.present? ? accessible_accounts.find(import_account_id) : nil
+        @import.assign_attributes(raw_file_str: csv_str, col_sep: effective_col_sep)
       @import.save!(validate: false)
 
       redirect_to import_configuration_path(@import, template_hint: true), notice: t("imports.create.csv_uploaded")
-    else
-      flash.now[:alert] = t("import.uploads.show.csv_invalid", default: "Must be valid CSV with headers and at least one row of data")
+      else
+        flash.now[:alert] = t("import.uploads.show.csv_invalid", default: "Must be valid CSV with headers and at least one row of data")
 
-      render :show, status: :unprocessable_entity
+        render :show, status: :unprocessable_entity
+      end
     end
   end
 
@@ -92,9 +96,9 @@ class Import::UploadsController < ApplicationController
       @csv_str ||= upload_params[:import_file]&.read || upload_params[:raw_file_str]
     end
 
-    def csv_valid?(str)
+    def csv_valid?(str, col_sep: upload_params[:col_sep])
       begin
-        csv = Import.parse_csv_str(str, col_sep: upload_params[:col_sep])
+        csv = Import.parse_csv_str(str, col_sep: col_sep)
         return false if csv.headers.empty?
         return false if csv.count == 0
         true
@@ -116,6 +120,10 @@ class Import::UploadsController < ApplicationController
       rescue JSON::ParserError
         false
       end
+    end
+
+    def auto_configured_import?
+      @import.type.in?(%w[MintImport BuddyImport])
     end
 
     def upload_params
