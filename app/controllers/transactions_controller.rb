@@ -137,6 +137,7 @@ class TransactionsController < ApplicationController
   end
 
   def update
+    previous_account = @entry.account
     if @entry.update(permitted_entry_params)
       transaction = @entry.transaction
       transaction.record_category_usage!
@@ -153,6 +154,7 @@ class TransactionsController < ApplicationController
       @entry.mark_user_modified!
       @entry.transaction.lock_attr!(:tag_ids) if @entry.transaction.tags.any?
       @entry.sync_account_later
+      previous_account.sync_later if previous_account.id != @entry.account_id
 
       notes_changed = @entry.saved_change_to_notes?
 
@@ -480,7 +482,7 @@ class TransactionsController < ApplicationController
 
     def entry_params
       entry_params = params.require(:entry).permit(
-        :name, :date, :amount, :currency, :excluded, :notes, :nature, :entryable_type,
+        :name, :date, :amount, :currency, :excluded, :notes, :nature, :entryable_type, :account_id,
         entryable_attributes: [ :id, :category_id, :merchant_id, :kind, :investment_activity_label, :exchange_rate, { tag_ids: [] } ]
       )
 

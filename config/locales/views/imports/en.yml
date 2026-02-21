@@ -114,6 +114,10 @@ en:
         button_label: Continue
         description: Upload a CSV file with your merchants. We'll automatically map the columns for you.
         instructions: Select continue to parse your CSV and move on to the clean step.
+      buddy_import:
+        date_format_label: Date format
+      fidelity_import:
+        date_format_label: Date format
       mint_import:
         date_format_label: Date format
       actual_import:
@@ -176,6 +180,10 @@ en:
         account_type_mapping_description: Assign all of your imported file's account
           types to %{product_name}'s
         account_type_mapping_title: Assign your account types
+        buddy_category_mapping_description: Assign all of your imported file's categories
+          to existing categories. Categories will be created with their parent hierarchy
+          if you choose "Add as new category".
+        buddy_category_mapping_title: Assign your categories
         category_mapping_description: Assign all of your imported file's categories
           to %{product_name}'s existing categories.  You can also add new categories or leave
           them uncategorized.
@@ -195,6 +203,7 @@ en:
         upload_csv_tab: Upload CSV
         copy_paste_tab: Copy & Paste
         account_optional_label: Account (optional)
+        account_required_label: Account
         multi_account_import: Multi-account import
         upload_csv_button: Upload CSV
         paste_csv_placeholder: Paste your CSV file contents here
@@ -265,6 +274,7 @@ en:
       price: "Price"
       entity_type: "Type"
       category_parent: "Parent category"
+      paid_by: "Paid by"
       category_color: "Color"
       category_icon: "Lucide icon"
       merchant_color: "Color"
@@ -390,6 +400,8 @@ en:
       import_accounts: Import accounts
       import_categories: Import categories
       import_merchants: Import merchants
+      import_buddy: Import from Buddy
+      import_fidelity: Import from Fidelity
       import_mint: Import from Mint
       import_actual: Import from Actual Budget
       import_portfolio: Import investments

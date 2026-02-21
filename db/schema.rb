@@ -991,6 +991,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_27_111051) do
     t.integer "source_row_number", null: false
     t.string "merchant_color"
     t.string "merchant_website"
+    t.string "paid_by"
     t.index ["import_id", "source_row_number"], name: "index_import_rows_on_import_id_and_source_row_number", unique: true
     t.index ["import_id"], name: "index_import_rows_on_import_id"
     t.check_constraint "source_row_number > 0", name: "chk_import_rows_source_row_number_positive"
@@ -1084,6 +1085,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_27_111051) do
     t.string "checksum", limit: 64
     t.jsonb "summary", default: {}, null: false
     t.jsonb "error_details", default: {}, null: false
+    t.string "category_parent_col_label"
+    t.string "paid_by_col_label"
     t.index ["account_statement_id"], name: "index_imports_on_account_statement_id"
     t.index ["family_id"], name: "index_imports_on_family_id"
     t.index ["import_session_id", "client_chunk_id"], name: "idx_imports_on_session_client_chunk", unique: true, where: "((import_session_id IS NOT NULL) AND (client_chunk_id IS NOT NULL))"

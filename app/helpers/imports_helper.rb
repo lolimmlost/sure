@@ -4,7 +4,8 @@ module ImportsHelper
       "Import::AccountTypeMapping" => I18n.t("imports.mapping_labels.account_type"),
       "Import::AccountMapping" => I18n.t("imports.mapping_labels.account"),
       "Import::CategoryMapping" => I18n.t("imports.mapping_labels.category"),
-      "Import::TagMapping" => I18n.t("imports.mapping_labels.tag")
+      "Import::TagMapping" => I18n.t("imports.mapping_labels.tag"),
+      "Import::BuddyCategoryMapping" => I18n.t("imports.mapping_labels.category")
     }.fetch(mapping_class.name)
   end
 
@@ -24,6 +25,7 @@ module ImportsHelper
       price: I18n.t("imports.column_labels.price"),
       entity_type: I18n.t("imports.column_labels.entity_type"),
       category_parent: I18n.t("imports.column_labels.category_parent"),
+      paid_by: I18n.t("imports.column_labels.paid_by"),
       category_color: I18n.t("imports.column_labels.category_color"),
       category_icon: I18n.t("imports.column_labels.category_icon"),
       merchant_color: I18n.t("imports.column_labels.merchant_color"),
@@ -82,7 +84,7 @@ module ImportsHelper
 
   private
     def permitted_import_types
-      %w[transaction_import trade_import account_import mint_import actual_import ynab_import category_import rule_import merchant_import]
+      %w[transaction_import trade_import account_import mint_import actual_import ynab_import category_import rule_import merchant_import buddy_import fidelity_import]
     end
 
     DryRunResource = Struct.new(:label, :icon, :text_class, :bg_class, keyword_init: true)

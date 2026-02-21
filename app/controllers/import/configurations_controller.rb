@@ -45,6 +45,8 @@ class Import::ConfigurationsController < ApplicationController
         :entity_type_col_label,
         :notes_col_label,
         :currency_col_label,
+        :category_parent_col_label,
+        :paid_by_col_label,
         :date_format,
         :number_format,
         :signage_convention,
