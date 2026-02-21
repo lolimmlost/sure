@@ -84,7 +84,18 @@ class TransactionsController < ApplicationController
   end
 
   def update
-    if @entry.update(entry_params)
+    previous_account = @entry.account
+    permitted_params = entry_params
+
+    if permitted_params[:account_id].present?
+      unless Current.family.accounts.exists?(id: permitted_params[:account_id])
+        flash[:alert] = "Account not found"
+        redirect_back_or_to transactions_path
+        return
+      end
+    end
+
+    if @entry.update(permitted_params)
       transaction = @entry.transaction
 
       if needs_rule_notification?(transaction)
@@ -99,6 +110,7 @@ class TransactionsController < ApplicationController
       @entry.mark_user_modified!
       @entry.transaction.lock_attr!(:tag_ids) if @entry.transaction.tags.any?
       @entry.sync_account_later
+      previous_account.sync_later if previous_account.id != @entry.account_id
 
       # Reload to ensure fresh state for turbo stream rendering
       @entry.reload
@@ -326,7 +338,7 @@ class TransactionsController < ApplicationController
 
     def entry_params
       entry_params = params.require(:entry).permit(
-        :name, :date, :amount, :currency, :excluded, :notes, :nature, :entryable_type,
+        :name, :date, :amount, :currency, :excluded, :notes, :nature, :entryable_type, :account_id,
         entryable_attributes: [ :id, :category_id, :merchant_id, :kind, :investment_activity_label, { tag_ids: [] } ]
       )
 
