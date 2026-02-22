@@ -24,6 +24,8 @@ class BudgetCategoriesController < ApplicationController
   def update
     @budget_category = Current.family.budget_categories.find(params[:id])
     @budget_category.update_budgeted_spending!(budgeted_spending_param)
+    @budget_category.update!(other_budget_category_params)
+    @budget_category.sync_budgeted_from_annual! if @budget_category.non_monthly?
 
     respond_to do |format|
       format.turbo_stream
@@ -39,6 +41,10 @@ class BudgetCategoriesController < ApplicationController
         .permit(:budgeted_spending)
         .fetch(:budgeted_spending, nil)
         .presence || 0
+    end
+
+    def other_budget_category_params
+      params.require(:budget_category).permit(:budget_frequency, :annual_amount, :goal_id)
     end
 
     def set_budget

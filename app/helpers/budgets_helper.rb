@@ -14,7 +14,7 @@ module BudgetsHelper
 
     def build_budget_categories_view_state(budget)
       uncategorized_budget_category = budget.uncategorized_budget_category
-      all_category_groups = BudgetCategory::Group.for(budget.budget_categories)
+      all_category_groups = BudgetCategory::Group.for(budget.expense_budget_categories)
 
       over_budget_groups = if budget.initialized?
         filtered_groups_for(all_category_groups) { |budget_category| budget_category.any_over_budget? }

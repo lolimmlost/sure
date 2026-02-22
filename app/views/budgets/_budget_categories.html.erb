@@ -9,6 +9,7 @@
 <% on_track_groups = categories_state[:on_track_groups] %>
 <% show_on_track_uncategorized = categories_state[:show_on_track_uncategorized] %>
 <% on_track_count = categories_state[:on_track_count] %>
+<% savings_groups = BudgetCategory::Group.for(budget.savings_budget_categories) %>
 
 <div class="space-y-4">
 
@@ -30,5 +31,39 @@
     show_uncategorized: show_on_track_uncategorized,
     over_budget_mode: false
   %>
+
+  <%# Savings Categories Section %>
+  <% if savings_groups.any? %>
+    <div class="flex items-center gap-1.5 px-4 py-2 mt-6 text-xs font-medium text-secondary uppercase">
+      <p><%= t("budgets.categories.savings_header") %></p>
+      <span class="text-subdued">&middot;</span>
+      <p><%= budget.savings_budget_categories.count %></p>
+      <p class="ml-auto"><%= t("budgets.categories.amount") %></p>
+    </div>
+
+    <div class="bg-container py-1 shadow-border-xs rounded-md">
+      <% savings_groups.each_with_index do |group, index| %>
+        <div class="py-2">
+          <%= render "budget_categories/budget_category", budget_category: group.budget_category %>
+
+          <div>
+            <% group.budget_subcategories.each do |budget_subcategory| %>
+              <div class="w-full flex items-start">
+                <div class="ml-8 pt-4 flex items-center justify-center text-subdued">
+                  <%= icon "corner-down-right" %>
+                </div>
+
+                <%= render "budget_categories/budget_category", budget_category: budget_subcategory %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <% unless index == savings_groups.length - 1 %>
+          <%= render "shared/ruler" %>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
 
 </div>
