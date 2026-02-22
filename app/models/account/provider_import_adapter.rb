@@ -936,6 +936,9 @@ class Account::ProviderImportAdapter
   def store_duplicate_suggestion(pending_entry:, posted_entry:, reason:, posted_amount:, confidence: "medium")
     return unless pending_entry&.entryable.is_a?(Transaction)
 
+    # Never suggest an entry as its own duplicate (self-reference guard)
+    return if pending_entry.id == posted_entry.id
+
     pending_transaction = pending_entry.entryable
     existing_extra = pending_transaction.extra || {}
 
