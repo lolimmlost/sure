@@ -49,7 +49,9 @@ module ImportsHelper
       holdings: DryRunResource.new(label: t("imports.dry_run_resources.holdings"), icon: "briefcase-business", text_class: "text-secondary", bg_class: "bg-container-inset"),
       valuations: DryRunResource.new(label: t("imports.dry_run_resources.valuations"), icon: "trending-up", text_class: "text-info", bg_class: "bg-info/10"),
       budgets: DryRunResource.new(label: t("imports.dry_run_resources.budgets"), icon: "wallet", text_class: "text-info", bg_class: "bg-info/10"),
-      budget_categories: DryRunResource.new(label: t("imports.dry_run_resources.budget_categories"), icon: "pie-chart", text_class: "text-success", bg_class: "bg-success/10")
+      budget_categories: DryRunResource.new(label: t("imports.dry_run_resources.budget_categories"), icon: "pie-chart", text_class: "text-success", bg_class: "bg-success/10"),
+      duplicates: DryRunResource.new(label: t("imports.dry_run_resources.duplicates"), icon: "copy", text_class: "text-destructive", bg_class: "bg-destructive/10"),
+      opening_balances: DryRunResource.new(label: t("imports.dry_run_resources.opening_balances"), icon: "scale", text_class: "text-success", bg_class: "bg-success/10")
     }
 
     map[key]

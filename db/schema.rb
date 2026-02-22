@@ -1087,6 +1087,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_27_111051) do
     t.jsonb "error_details", default: {}, null: false
     t.string "category_parent_col_label"
     t.string "paid_by_col_label"
+    t.text "positions_file_str"
     t.index ["account_statement_id"], name: "index_imports_on_account_statement_id"
     t.index ["family_id"], name: "index_imports_on_family_id"
     t.index ["import_session_id", "client_chunk_id"], name: "idx_imports_on_session_client_chunk", unique: true, where: "((import_session_id IS NOT NULL) AND (client_chunk_id IS NOT NULL))"
