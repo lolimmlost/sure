@@ -8,6 +8,7 @@ en:
       tabs:
         actual: Actual
         budgeted: Budgeted
+        status: Status
     copy_previous_prompt:
       title: "Set up your budget"
       description: "You can copy your budget from %{source_name} or start fresh."
