@@ -15,7 +15,7 @@ class Budget < ApplicationRecord
   monetize :budgeted_spending, :expected_income, :allocated_spending,
            :actual_spending, :available_to_spend, :available_to_allocate,
            :estimated_spending, :estimated_income, :actual_income, :remaining_expected_income,
-           :budgeted_savings, :actual_savings
+           :budgeted_savings, :actual_savings, :savings_remaining
 
   class << self
     def date_to_param(date)
@@ -245,7 +245,6 @@ class Budget < ApplicationRecord
   end
 
   def actual_spending
-<<<<<<< HEAD
     [ expense_totals.total - savings_in_expense_totals - refunds_in_expense_categories, 0 ].max
   end
 
@@ -282,6 +281,20 @@ class Budget < ApplicationRecord
     return 0 unless available_to_spend.negative?
 
     available_to_spend.abs / actual_spending.to_f * 100
+  end
+
+  def savings_percent
+    return 0 unless budgeted_savings > 0
+    (actual_savings.to_f / budgeted_savings * 100)
+  end
+
+  def savings_overage_percent
+    return 0 unless actual_savings > budgeted_savings
+    (actual_savings - budgeted_savings).to_f / actual_savings * 100
+  end
+
+  def savings_remaining
+    budgeted_savings - actual_savings
   end
 
   # =============================================================================
@@ -333,24 +346,16 @@ class Budget < ApplicationRecord
   end
 
   private
-<<<<<<< HEAD
     def income_statement
       @income_statement ||= family.income_statement(user: current_user)
     end
 
-    def savings_category_ids
-      @savings_category_ids ||= savings_budget_categories.map(&:category_id).to_set
-    end
-
     def savings_in_expense_totals
-      expense_totals.category_totals
-        .reject { |ct| ct.category.subcategory? }
-        .select { |ct| savings_category_ids.include?(ct.category.id) }
-        .sum(&:total)
+      @savings_in_expense_totals ||= income_statement.savings_in_expense_totals(expense_totals)
     end
 
     def refunds_in_expense_categories
-      expense_category_ids = budget_categories.map(&:category_id).to_set
+      expense_category_ids = expense_budget_categories.map(&:category_id).to_set
       income_totals.category_totals
         .reject { |ct| ct.category.subcategory? }
         .select { |ct| expense_category_ids.include?(ct.category.id) || ct.category.uncategorized? }
