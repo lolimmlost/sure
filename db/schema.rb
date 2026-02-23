@@ -221,9 +221,13 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_28_120000) do
     t.string "currency", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "budget_frequency", default: "monthly", null: false
+    t.decimal "annual_amount", precision: 19, scale: 4
+    t.uuid "goal_id"
     t.index ["budget_id", "category_id"], name: "index_budget_categories_on_budget_id_and_category_id", unique: true
     t.index ["budget_id"], name: "index_budget_categories_on_budget_id"
     t.index ["category_id"], name: "index_budget_categories_on_category_id"
+    t.index ["goal_id"], name: "index_budget_categories_on_goal_id"
   end
 
   create_table "budgets", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -633,6 +637,26 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_28_120000) do
     t.index ["merchant_id"], name: "index_family_merchant_associations_on_merchant_id"
   end
 
+  create_table "goals", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "family_id", null: false
+    t.string "name", null: false
+    t.text "description"
+    t.string "goal_type", default: "custom", null: false
+    t.decimal "target_amount", precision: 19, scale: 4, null: false
+    t.decimal "current_amount", precision: 19, scale: 4, default: "0.0", null: false
+    t.date "target_date"
+    t.string "lucide_icon", default: "target"
+    t.string "color", default: "#6366f1"
+    t.integer "priority", default: 0
+    t.boolean "is_completed", default: false, null: false
+    t.string "currency", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.uuid "account_id"
+    t.index ["account_id"], name: "index_goals_on_account_id"
+    t.index ["family_id"], name: "index_goals_on_family_id"
+  end
+
   create_table "holdings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "account_id", null: false
     t.uuid "security_id", null: false
@@ -721,6 +745,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_28_120000) do
     t.string "effective_date"
     t.text "conditions"
     t.text "actions"
+    t.string "paid_by"
     t.index ["import_id"], name: "index_import_rows_on_import_id"
   end
 
@@ -761,6 +786,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_28_120000) do
     t.string "document_type"
     t.jsonb "extracted_data"
     t.text "positions_file_str"
+    t.string "category_parent_col_label"
+    t.string "paid_by_col_label"
     t.index ["family_id"], name: "index_imports_on_family_id"
   end
 
@@ -1650,6 +1677,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_28_120000) do
   add_foreign_key "binance_items", "families"
   add_foreign_key "budget_categories", "budgets"
   add_foreign_key "budget_categories", "categories"
+  add_foreign_key "budget_categories", "goals"
   add_foreign_key "budgets", "families"
   add_foreign_key "categories", "families"
   add_foreign_key "chats", "users"
@@ -1670,6 +1698,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_28_120000) do
   add_foreign_key "family_exports", "families"
   add_foreign_key "family_merchant_associations", "families"
   add_foreign_key "family_merchant_associations", "merchants"
+  add_foreign_key "goals", "accounts"
+  add_foreign_key "goals", "families"
   add_foreign_key "holdings", "account_providers"
   add_foreign_key "holdings", "accounts", on_delete: :cascade
   add_foreign_key "holdings", "securities"
