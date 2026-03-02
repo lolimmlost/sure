@@ -328,4 +328,261 @@ class BudgetTest < ActiveSupport::TestCase
     # Other Investments synthetic categories previously caused this to return 0
     assert spending >= 75, "Uncategorized actual spending should include the $75 transaction, got #{spending}"
   end
+
+  test "actual_spending excludes savings category transactions" do
+    family = families(:dylan_family)
+    budget = Budget.find_or_bootstrap(family, start_date: Date.current.beginning_of_month)
+    account = accounts(:depository)
+
+    savings_category = categories(:savings)
+    budget.sync_budget_categories
+
+    spending_with_savings_transfer = budget.actual_spending
+
+    # Create a savings transfer (should NOT count as spending)
+    Entry.create!(
+      account: account,
+      entryable: Transaction.create!(category: savings_category),
+      date: Date.current,
+      name: "Savings transfer",
+      amount: 500,
+      currency: "USD"
+    )
+
+    budget = Budget.find(budget.id)
+    budget.sync_budget_categories
+
+    # Now create a regular expense
+    Entry.create!(
+      account: account,
+      entryable: Transaction.create!(category: categories(:food_and_drink)),
+      date: Date.current,
+      name: "Dinner",
+      amount: 100,
+      currency: "USD"
+    )
+
+    budget = Budget.find(budget.id)
+    budget.sync_budget_categories
+
+    # actual_spending should increase by 100 (the dinner), not include the 500 savings
+    assert_equal 100, budget.actual_spending - spending_with_savings_transfer
+  end
+
+  test "actual_savings sums savings budget categories" do
+    family = families(:dylan_family)
+    budget = Budget.find_or_bootstrap(family, start_date: Date.current.beginning_of_month)
+    account = accounts(:depository)
+
+    savings_category = categories(:savings)
+    budget.sync_budget_categories
+
+    savings_bc = budget.budget_categories.find_by(category: savings_category)
+    savings_bc.update!(budgeted_spending: 1000)
+
+    savings_before = budget.actual_savings
+
+    Entry.create!(
+      account: account,
+      entryable: Transaction.create!(category: savings_category),
+      date: Date.current,
+      name: "Savings transfer",
+      amount: 300,
+      currency: "USD"
+    )
+
+    budget = Budget.find(budget.id)
+    budget.sync_budget_categories
+
+    assert_equal 300, budget.actual_savings - savings_before
+  end
+
+  test "savings_percent returns percentage of budgeted savings achieved" do
+    family = families(:dylan_family)
+    budget = Budget.find_or_bootstrap(family, start_date: Date.current.beginning_of_month)
+
+    savings_category = categories(:savings)
+    budget.sync_budget_categories
+
+    savings_bc = budget.budget_categories.find_by(category: savings_category)
+    savings_bc.update!(budgeted_spending: 1000)
+
+    budget.stubs(:actual_savings).returns(500)
+    assert_in_delta 50.0, budget.savings_percent, 0.01
+  end
+
+  test "savings_percent returns 0 when no budgeted savings" do
+    family = families(:dylan_family)
+    budget = Budget.find_or_bootstrap(family, start_date: Date.current.beginning_of_month)
+
+    budget.stubs(:budgeted_savings).returns(0)
+    assert_equal 0, budget.savings_percent
+  end
+
+  test "savings_overage_percent returns percentage when savings exceed budget" do
+    family = families(:dylan_family)
+    budget = Budget.find_or_bootstrap(family, start_date: Date.current.beginning_of_month)
+
+    budget.stubs(:budgeted_savings).returns(500)
+    budget.stubs(:actual_savings).returns(750)
+
+    # overage = 250, overage_pct = 250/750 * 100 = 33.33
+    assert_in_delta 33.33, budget.savings_overage_percent, 0.01
+  end
+
+  test "savings_overage_percent returns 0 when savings under budget" do
+    family = families(:dylan_family)
+    budget = Budget.find_or_bootstrap(family, start_date: Date.current.beginning_of_month)
+
+    budget.stubs(:budgeted_savings).returns(500)
+    budget.stubs(:actual_savings).returns(300)
+
+    assert_equal 0, budget.savings_overage_percent
+  end
+
+  test "savings_remaining returns difference between budgeted and actual savings" do
+    family = families(:dylan_family)
+    budget = Budget.find_or_bootstrap(family, start_date: Date.current.beginning_of_month)
+
+    budget.stubs(:budgeted_savings).returns(1000)
+    budget.stubs(:actual_savings).returns(400)
+
+    assert_equal 600, budget.savings_remaining
+  end
+
+  test "most_recent_initialized_budget returns latest initialized budget before this one" do
+    family = families(:dylan_family)
+
+    # Create an older initialized budget (2 months ago)
+    older_budget = Budget.create!(
+      family: family,
+      start_date: 2.months.ago.beginning_of_month,
+      end_date: 2.months.ago.end_of_month,
+      budgeted_spending: 3000,
+      expected_income: 5000,
+      currency: "USD"
+    )
+
+    # Create a middle uninitialized budget (1 month ago)
+    Budget.create!(
+      family: family,
+      start_date: 1.month.ago.beginning_of_month,
+      end_date: 1.month.ago.end_of_month,
+      currency: "USD"
+    )
+
+    current_budget = Budget.find_or_bootstrap(family, start_date: Date.current)
+
+    assert_equal older_budget, current_budget.most_recent_initialized_budget
+  end
+
+  test "most_recent_initialized_budget returns nil when none exist" do
+    family = families(:empty)
+    budget = Budget.create!(
+      family: family,
+      start_date: Date.current.beginning_of_month,
+      end_date: Date.current.end_of_month,
+      currency: "USD"
+    )
+
+    assert_nil budget.most_recent_initialized_budget
+  end
+
+  test "copy_from copies budgeted_spending expected_income and matching category fields" do
+    family = families(:dylan_family)
+
+    # Use past months to avoid fixture conflict (fixture :one is at Date.current for dylan_family)
+    source_budget = Budget.find_or_bootstrap(family, start_date: 2.months.ago)
+    source_budget.update!(budgeted_spending: 4000, expected_income: 6000)
+    source_bc = source_budget.budget_categories.find_by(category: categories(:food_and_drink))
+    source_bc.update!(budgeted_spending: 500, budget_frequency: "quarterly", annual_amount: 2000)
+
+    target_budget = Budget.find_or_bootstrap(family, start_date: 1.month.ago)
+    assert_nil target_budget.budgeted_spending
+
+    target_budget.copy_from!(source_budget)
+    target_budget.reload
+
+    assert_equal 4000, target_budget.budgeted_spending
+    assert_equal 6000, target_budget.expected_income
+
+    target_bc = target_budget.budget_categories.find_by(category: categories(:food_and_drink))
+    assert_equal 500, target_bc.budgeted_spending
+    assert_equal "quarterly", target_bc.budget_frequency
+    assert_equal 2000, target_bc.annual_amount
+  end
+
+  test "copy_from skips categories that dont exist in target" do
+    family = families(:dylan_family)
+
+    source_budget = Budget.find_or_bootstrap(family, start_date: 2.months.ago)
+    source_budget.update!(budgeted_spending: 4000, expected_income: 6000)
+
+    # Create a category only in the source budget
+    temp_category = Category.create!(name: "Temp #{Time.now.to_f}", family: family, color: "#aaa")
+    source_budget.budget_categories.create!(category: temp_category, budgeted_spending: 100, currency: "USD")
+
+    target_budget = Budget.find_or_bootstrap(family, start_date: 1.month.ago)
+
+    # Should not raise even though target doesn't have the temp category
+    assert_nothing_raised { target_budget.copy_from!(source_budget) }
+    assert_equal 4000, target_budget.reload.budgeted_spending
+  end
+
+  test "copy_from leaves new categories at zero" do
+    family = families(:dylan_family)
+
+    source_budget = Budget.find_or_bootstrap(family, start_date: 2.months.ago)
+    source_budget.update!(budgeted_spending: 4000, expected_income: 6000)
+
+    target_budget = Budget.find_or_bootstrap(family, start_date: 1.month.ago)
+
+    # Add a new category only to the target
+    new_category = Category.create!(name: "New #{Time.now.to_f}", family: family, color: "#bbb")
+    target_budget.budget_categories.create!(category: new_category, budgeted_spending: 0, currency: "USD")
+
+    target_budget.copy_from!(source_budget)
+
+    new_bc = target_budget.budget_categories.find_by(category: new_category)
+    assert_equal 0, new_bc.budgeted_spending
+  end
+
+  test "refunds in savings categories do not reduce actual_spending" do
+    family = families(:dylan_family)
+    budget = Budget.find_or_bootstrap(family, start_date: Date.current.beginning_of_month)
+    account = accounts(:depository)
+
+    savings_category = categories(:savings)
+    budget.sync_budget_categories
+
+    # Create a regular expense
+    Entry.create!(
+      account: account,
+      entryable: Transaction.create!(category: categories(:food_and_drink)),
+      date: Date.current,
+      name: "Grocery shopping",
+      amount: 200,
+      currency: "USD"
+    )
+
+    budget = Budget.find(budget.id)
+    budget.sync_budget_categories
+    spending_before = budget.actual_spending
+
+    # Create a refund in savings category (income in savings)
+    Entry.create!(
+      account: account,
+      entryable: Transaction.create!(category: savings_category),
+      date: Date.current,
+      name: "Savings rebate",
+      amount: -100,
+      currency: "USD"
+    )
+
+    budget = Budget.find(budget.id)
+    budget.sync_budget_categories
+
+    # actual_spending should NOT decrease from the savings refund
+    assert_equal spending_before, budget.actual_spending
+  end
 end
