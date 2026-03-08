@@ -53,11 +53,16 @@ class InvestmentStatement::Totals
           COUNT(trades.id) as trades_count
         FROM entries
         JOIN trades ON trades.id = entries.entryable_id AND entries.entryable_type = 'Trade'
-        LEFT JOIN exchange_rates er ON (
-          er.date = entries.date AND
-          er.from_currency = entries.currency AND
-          er.to_currency = :target_currency
-        )
+        LEFT JOIN LATERAL (
+          SELECT COALESCE(
+            (SELECT er.rate FROM exchange_rates er
+             WHERE er.from_currency = entries.currency AND er.to_currency = :target_currency
+               AND er.date <= entries.date ORDER BY er.date DESC LIMIT 1),
+            (SELECT er.rate FROM exchange_rates er
+             WHERE er.from_currency = entries.currency AND er.to_currency = :target_currency
+               AND er.date > entries.date ORDER BY er.date ASC LIMIT 1)
+          ) AS rate
+        ) er ON TRUE
         WHERE entries.account_id IN (:account_ids)
           AND entries.date BETWEEN :start_date AND :end_date
           AND entries.excluded = false
