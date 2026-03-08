@@ -14,8 +14,6 @@ export default class extends Controller {
 
   updateAmount(currency) {
     new CurrenciesService().get(currency).then((currency) => {
-      this.amountTarget.step = currency.step;
-
       const rawValue = this.amountTarget.value.trim();
       if (rawValue !== "") {
         const parsedAmount = parseLocaleFloat(rawValue);
