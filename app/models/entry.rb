@@ -19,6 +19,7 @@ class Entry < ApplicationRecord
   validates :date, uniqueness: { scope: [ :account_id, :entryable_type ] }, if: -> { valuation? }
   validates :date, comparison: { greater_than: -> { min_supported_date } }
   validates :external_id, uniqueness: { scope: [ :account_id, :source ] }, if: -> { external_id.present? && source.present? }
+  validate :account_not_changed_when_linked, if: -> { account_id_changed? && persisted? }
 
   validate :cannot_unexclude_split_parent
   validate :split_child_date_matches_parent
@@ -384,6 +385,14 @@ class Entry < ApplicationRecord
       update!(excluded: false)
     end
   end
+
+  private
+
+    def account_not_changed_when_linked
+      if external_id.present?
+        errors.add(:account_id, "cannot be changed for provider-linked entries")
+      end
+    end
 
   class << self
     def search(params)
