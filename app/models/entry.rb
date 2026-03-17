@@ -14,6 +14,7 @@ class Entry < ApplicationRecord
   validates :date, uniqueness: { scope: [ :account_id, :entryable_type ] }, if: -> { valuation? }
   validates :date, comparison: { greater_than: -> { min_supported_date } }
   validates :external_id, uniqueness: { scope: [ :account_id, :source ] }, if: -> { external_id.present? && source.present? }
+  validate :account_not_changed_when_linked, if: -> { account_id_changed? && persisted? }
 
   scope :visible, -> {
     joins(:account).where(accounts: { status: [ "draft", "active" ] })
@@ -312,6 +313,14 @@ class Entry < ApplicationRecord
       entryable&.update!(locked_attributes: {})
     end
   end
+
+  private
+
+    def account_not_changed_when_linked
+      if external_id.present?
+        errors.add(:account_id, "cannot be changed for provider-linked entries")
+      end
+    end
 
   class << self
     def search(params)
