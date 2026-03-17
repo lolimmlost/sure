@@ -110,11 +110,25 @@ export default class extends Controller {
   }
 
   touchMove(event) {
-    if (!this.holdActivated || !this.isTouching || !this.draggedElement) return;
+    const touchX = event.touches[0].clientX;
+    const touchY = event.touches[0].clientY;
+
+    // If hold hasn't activated yet, cancel if user moves too far (scrolling or swiping)
+    // Uses Euclidean distance to catch diagonal gestures too
+    if (!this.holdActivated) {
+      const dx = touchX - this.touchStartX;
+      const dy = touchY - this.touchStartY;
+      if (dx * dx + dy * dy > 100) { // 10px radius
+        this.cancelHold();
+      }
+      return;
+    }
+
+    if (!this.isTouching || !this.draggedElement) return;
 
     event.preventDefault();
-    this.currentTouchX = event.touches[0].clientX;
-    this.currentTouchY = event.touches[0].clientY;
+    this.currentTouchX = touchX;
+    this.currentTouchY = touchY;
 
     const afterElement = this.getDragAfterElement(this.currentTouchX, this.currentTouchY);
     this.clearPlaceholders();
