@@ -33,11 +33,11 @@ class Import::ConfigurationsController < ApplicationController
 
     def handle_positions_file
       positions_file = params.dig(:import, :positions_file)
-      return unless positions_file.present?
+      if positions_file.present?
+        @import.positions_file_str = positions_file.read
+      end
 
-      @import.positions_file_str = positions_file.read
-
-      # Store selected account number if provided
+      # Always persist account selection, even without a new file upload
       acct_num = params.dig(:import, :positions_account_number)
       @import.positions_account_number = acct_num if acct_num.present?
     end
