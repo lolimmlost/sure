@@ -19,10 +19,9 @@ class PagesController < ApplicationController
     income_statement = Current.family.income_statement
     income_totals = income_statement.income_totals(period: @period)
     expense_totals = income_statement.expense_totals(period: @period)
-    net_totals = income_statement.net_category_totals(period: @period)
 
-    @cashflow_sankey_data = build_cashflow_sankey_data(net_totals, income_totals, expense_totals, family_currency)
-    @outflows_data = build_outflows_donut_data(net_totals)
+    @cashflow_sankey_data = build_cashflow_sankey_data(income_totals, expense_totals, family_currency)
+    @outflows_data = build_outflows_donut_data(expense_totals)
 
     @goals = Current.family.goals.active.includes(:account).by_priority.limit(4)
 
