@@ -71,12 +71,13 @@ class Transaction < ApplicationRecord
     cc_payment: "cc_payment", # A CC payment, excluded from budget analytics (CC payments offset the sum of expense transactions)
     loan_payment: "loan_payment", # A payment to a Loan account, treated as an expense in budgets
     one_time: "one_time", # A one-time expense/income, excluded from budget analytics
-    investment_contribution: "investment_contribution" # Transfer to investment/crypto account, treated as an expense in budgets
+    investment_contribution: "investment_contribution", # Transfer to investment/crypto account, treated as an expense in budgets
+    savings_contribution: "savings_contribution" # Transfer to savings/HSA/CD/money market account, treated as an expense in budgets
   }
 
   # All kinds where money moves between accounts (transfer? returns true).
   # Used for search filters, rule conditions, and UI display.
-  TRANSFER_KINDS = %w[funds_movement cc_payment loan_payment investment_contribution].freeze
+  TRANSFER_KINDS = %w[funds_movement cc_payment loan_payment investment_contribution savings_contribution].freeze
 
   # Kinds excluded from budget/income-statement analytics.
   # loan_payment and investment_contribution are intentionally NOT here —
@@ -133,12 +134,7 @@ class Transaction < ApplicationRecord
     return true unless transfer?
     return transfer.categorizable? if transfer.present?
 
-    return true if kind.in?(%w[loan_payment investment_contribution])
-
-    # Provider-imported funds_movement on non-checking depository accounts
-    kind == "funds_movement" &&
-      entry&.account&.accountable_type == "Depository" &&
-      entry&.account&.accountable&.subtype.in?(Transfer::CATEGORIZABLE_DEPOSITORY_SUBTYPES)
+    kind.in?(%w[loan_payment investment_contribution savings_contribution])
   end
 
   def set_category!(category)

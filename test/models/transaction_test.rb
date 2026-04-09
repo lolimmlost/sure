@@ -56,7 +56,7 @@ class TransactionTest < ActiveSupport::TestCase
   end
 
   test "all transaction kinds are valid" do
-    valid_kinds = %w[standard funds_movement cc_payment loan_payment one_time investment_contribution]
+    valid_kinds = %w[standard funds_movement cc_payment loan_payment one_time investment_contribution savings_contribution]
 
     valid_kinds.each do |kind|
       transaction = Transaction.new(kind: kind)

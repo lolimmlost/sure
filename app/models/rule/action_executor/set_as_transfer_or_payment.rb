@@ -27,6 +27,9 @@ class Rule::ActionExecutor::SetAsTransferOrPayment < Rule::ActionExecutor
           if outflow_kind == "investment_contribution"
             category = destination_account.family.investment_contributions_category
             outflow_attrs[:category] = category if category.present? && transfer.outflow_transaction.category_id.blank?
+          elsif outflow_kind == "savings_contribution"
+            category = destination_account.family.savings_contributions_category
+            outflow_attrs[:category] = category if category.present? && transfer.outflow_transaction.category_id.blank?
           end
 
           transfer.outflow_transaction.update!(outflow_attrs)

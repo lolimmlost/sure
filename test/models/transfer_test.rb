@@ -121,11 +121,17 @@ class TransferTest < ActiveSupport::TestCase
     assert_equal "cc_payment", Transfer.kind_for_account(accounts(:credit_card))
   end
 
-  test "kind_for_account returns funds_movement for depository accounts" do
+  test "kind_for_account returns funds_movement for checking depository accounts" do
     assert_equal "funds_movement", Transfer.kind_for_account(accounts(:depository))
   end
 
   %w[savings hsa cd money_market].each do |subtype|
+    test "kind_for_account returns savings_contribution for #{subtype} accounts" do
+      family = families(:dylan_family)
+      target = family.accounts.create!(name: subtype.titleize, balance: 10000, currency: "USD", accountable: Depository.new(subtype: subtype))
+      assert_equal "savings_contribution", Transfer.kind_for_account(target)
+    end
+
     test "categorizable? returns true for transfers to #{subtype} accounts" do
       family = families(:dylan_family)
       target = family.accounts.create!(name: subtype.titleize, balance: 10000, currency: "USD", accountable: Depository.new(subtype: subtype))

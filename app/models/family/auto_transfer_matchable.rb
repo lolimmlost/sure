@@ -76,12 +76,16 @@ module Family::AutoTransferMatchable
         inflow_transaction.update!(kind: "funds_movement")
         outflow_transaction.update!(kind: Transfer.kind_for_account(inflow_transaction.entry.account))
 
-        # Assign Investment Contributions category for transfers to investment accounts
+        # Assign auto-category for transfers to investment/savings accounts
         destination_account = Transaction.find(match.inflow_transaction_id).entry.account
-        if Transfer.kind_for_account(destination_account) == "investment_contribution"
+        destination_kind = Transfer.kind_for_account(destination_account)
+        if destination_kind.in?(%w[investment_contribution savings_contribution])
           outflow_txn = Transaction.find(match.outflow_transaction_id)
           if outflow_txn.category_id.blank?
-            category = destination_account.family.investment_contributions_category
+            category = case destination_kind
+                       when "investment_contribution" then destination_account.family.investment_contributions_category
+                       when "savings_contribution" then destination_account.family.savings_contributions_category
+                       end
             outflow_txn.update!(category: category) if category.present?
           end
         end

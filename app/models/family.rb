@@ -222,6 +222,42 @@ class Family < ApplicationRecord
     end
   end
 
+  # Returns the Savings Contributions category for this family, creating it if it doesn't exist.
+  # Mirrors investment_contributions_category for transfers to savings/HSA/CD/money market accounts.
+  def savings_contributions_category
+    legacy = categories.where(name: Category.all_savings_contributions_names).order(:created_at).to_a
+
+    if legacy.any?
+      keeper = legacy.first
+      duplicates = legacy[1..]
+
+      if duplicates.any?
+        duplicate_ids = duplicates.map(&:id)
+        categories.where(parent_id: duplicate_ids).update_all(parent_id: keeper.id)
+        Transaction.where(category_id: duplicate_ids).update_all(category_id: keeper.id)
+        BudgetCategory.where(category_id: duplicate_ids).update_all(category_id: keeper.id)
+        categories.where(id: duplicate_ids).delete_all
+      end
+
+      I18n.with_locale(locale) do
+        correct_name = Category.savings_contributions_name
+        keeper.update!(name: correct_name) unless keeper.name == correct_name
+      end
+      return keeper
+    end
+
+    I18n.with_locale(locale) do
+      categories.find_or_create_by!(name: Category.savings_contributions_name) do |cat|
+        cat.color = "#059669"
+        cat.lucide_icon = "piggy-bank"
+      end
+    end
+  rescue ActiveRecord::RecordNotUnique, ActiveRecord::RecordInvalid
+    I18n.with_locale(locale) do
+      categories.find_by!(name: Category.savings_contributions_name)
+    end
+  end
+
   # Returns account IDs for tax-advantaged accounts (401k, IRA, HSA, etc.)
   # Used to exclude these accounts from budget/cashflow calculations.
   # Tax-advantaged accounts are retirement savings, not daily expenses.

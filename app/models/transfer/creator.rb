@@ -39,7 +39,7 @@ class Transfer::Creator
 
       Transaction.new(
         kind: kind,
-        category: (investment_contributions_category if kind == "investment_contribution"),
+        category: auto_category_for_kind(kind),
         entry: source_account.entries.build(
           amount: amount.abs,
           currency: source_account.currency,
@@ -50,8 +50,13 @@ class Transfer::Creator
       )
     end
 
-    def investment_contributions_category
-      source_account.family.investment_contributions_category
+    def auto_category_for_kind(kind)
+      case kind
+      when "investment_contribution"
+        source_account.family.investment_contributions_category
+      when "savings_contribution"
+        source_account.family.savings_contributions_category
+      end
     end
 
     def inflow_transaction
@@ -88,6 +93,8 @@ class Transfer::Creator
         "cc_payment"
       elsif destination_is_investment? && !source_is_investment?
         "investment_contribution"
+      elsif destination_is_categorizable_depository? && !source_is_categorizable_depository?
+        "savings_contribution"
       else
         "funds_movement"
       end
@@ -99,6 +106,14 @@ class Transfer::Creator
 
     def source_is_investment?
       source_account.investment? || source_account.crypto?
+    end
+
+    def destination_is_categorizable_depository?
+      Transfer.categorizable_depository?(destination_account)
+    end
+
+    def source_is_categorizable_depository?
+      Transfer.categorizable_depository?(source_account)
     end
 
     def name_prefix

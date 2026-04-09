@@ -89,6 +89,7 @@ class Category < ApplicationRecord
   UNCATEGORIZED_NAME_KEY = "models.category.uncategorized"
   OTHER_INVESTMENTS_NAME_KEY = "models.category.other_investments"
   INVESTMENT_CONTRIBUTIONS_NAME_KEY = "models.category.investment_contributions"
+  SAVINGS_CONTRIBUTIONS_NAME_KEY = "models.category.savings_contributions"
 
   class Group
     attr_reader :category, :subcategories
@@ -194,6 +195,16 @@ class Category < ApplicationRecord
       end.uniq
     end
 
+    def savings_contributions_name
+      I18n.t(SAVINGS_CONTRIBUTIONS_NAME_KEY)
+    end
+
+    def all_savings_contributions_names
+      LanguagesHelper::SUPPORTED_LOCALES.map do |locale|
+        I18n.t(SAVINGS_CONTRIBUTIONS_NAME_KEY, locale: locale)
+      end.uniq
+    end
+
     private
       def default_categories
         [
@@ -218,7 +229,8 @@ class Category < ApplicationRecord
           [ "Services", "#7c3aed", "briefcase" ],
           [ "Fees", "#6b7280", "receipt" ],
           [ "Savings & Investments", "#059669", "piggy-bank" ],
-          [ investment_contributions_name, "#0d9488", "trending-up" ]
+          [ investment_contributions_name, "#0d9488", "trending-up" ],
+          [ savings_contributions_name, "#059669", "piggy-bank" ]
         ]
       end
   end

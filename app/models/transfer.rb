@@ -22,9 +22,16 @@ class Transfer < ApplicationRecord
         "investment_contribution"
       elsif account.liability?
         "cc_payment"
+      elsif categorizable_depository?(account)
+        "savings_contribution"
       else
         "funds_movement"
       end
+    end
+
+    def categorizable_depository?(account)
+      account.accountable_type == "Depository" &&
+        account.accountable&.subtype.in?(CATEGORIZABLE_DEPOSITORY_SUBTYPES)
     end
   end
 
