@@ -124,4 +124,36 @@ class TransferTest < ActiveSupport::TestCase
   test "kind_for_account returns funds_movement for depository accounts" do
     assert_equal "funds_movement", Transfer.kind_for_account(accounts(:depository))
   end
+
+  %w[savings hsa cd money_market].each do |subtype|
+    test "categorizable? returns true for transfers to #{subtype} accounts" do
+      family = families(:dylan_family)
+      target = family.accounts.create!(name: subtype.titleize, balance: 10000, currency: "USD", accountable: Depository.new(subtype: subtype))
+
+      outflow_entry = create_transaction(date: Date.current, account: accounts(:depository), amount: 500)
+      inflow_entry = create_transaction(date: Date.current, account: target, amount: -500)
+
+      transfer = Transfer.create!(
+        inflow_transaction: inflow_entry.transaction,
+        outflow_transaction: outflow_entry.transaction
+      )
+
+      assert transfer.categorizable?
+    end
+  end
+
+  test "categorizable? returns false for transfers to checking accounts" do
+    family = families(:dylan_family)
+    checking_account2 = family.accounts.create!(name: "Checking 2", balance: 5000, currency: "USD", accountable: Depository.new(subtype: "checking"))
+
+    outflow_entry = create_transaction(date: Date.current, account: accounts(:depository), amount: 500)
+    inflow_entry = create_transaction(date: Date.current, account: checking_account2, amount: -500)
+
+    transfer = Transfer.create!(
+      inflow_transaction: inflow_entry.transaction,
+      outflow_transaction: outflow_entry.transaction
+    )
+
+    assert_not transfer.categorizable?
+  end
 end

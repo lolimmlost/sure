@@ -100,8 +100,13 @@ class Transfer < ApplicationRecord
     "transfer"
   end
 
+  CATEGORIZABLE_DEPOSITORY_SUBTYPES = %w[savings hsa cd money_market].freeze
+
   def categorizable?
-    to_account&.accountable_type.in?(%w[Loan Investment Crypto])
+    return true if to_account&.accountable_type.in?(%w[Loan Investment Crypto])
+
+    to_account&.accountable_type == "Depository" &&
+      to_account&.accountable&.subtype.in?(CATEGORIZABLE_DEPOSITORY_SUBTYPES)
   end
 
   private

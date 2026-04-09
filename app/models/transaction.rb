@@ -133,7 +133,12 @@ class Transaction < ApplicationRecord
     return true unless transfer?
     return transfer.categorizable? if transfer.present?
 
-    kind.in?(%w[loan_payment investment_contribution])
+    return true if kind.in?(%w[loan_payment investment_contribution])
+
+    # Provider-imported funds_movement on non-checking depository accounts
+    kind == "funds_movement" &&
+      entry&.account&.accountable_type == "Depository" &&
+      entry&.account&.accountable&.subtype.in?(Transfer::CATEGORIZABLE_DEPOSITORY_SUBTYPES)
   end
 
   def set_category!(category)
