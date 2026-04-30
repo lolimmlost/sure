@@ -54,6 +54,7 @@ en:
       month: Month
       income: Income
       expenses: Expenses
+      savings: Savings
       net: Net
       savings_rate: Savings Rate
       net_rate: Net %
@@ -61,6 +62,7 @@ en:
       avg_monthly_income: Avg. Monthly Income
       avg_monthly_expenses: Avg. Monthly Expenses
       avg_monthly_savings: Avg. Monthly Savings
+      avg_monthly_net: Avg. Monthly Net
       no_data: No trend data available
       spending_patterns: Spending Patterns
       weekday_spending: Weekday Spending

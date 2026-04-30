@@ -353,14 +353,16 @@ class ReportsController < ApplicationController
 
         income = Current.family.income_statement.income_totals(period: period).total
         expense_totals = Current.family.income_statement.expense_totals(period: period)
-        expenses = [ expense_totals.total - savings_in_expense_totals(expense_totals), 0 ].max
+        savings = savings_in_expense_totals(expense_totals)
+        expenses = [ expense_totals.total - savings, 0 ].max
 
         trends << {
           month: month_start.strftime("%b %Y"),
           is_current_month: (month_start.month == Date.current.month && month_start.year == Date.current.year),
           income: income,
           expenses: expenses,
-          net: income - expenses
+          savings: savings,
+          net: income - expenses - savings
         }
 
         current_month = current_month.next_month
