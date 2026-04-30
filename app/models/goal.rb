@@ -33,7 +33,11 @@ class Goal < ApplicationRecord
 
   def computed_current_amount
     if account.present?
-      account.balance_money.exchange_to(currency, fallback_rate: 1).amount
+      begin
+        account.balance_money.exchange_to(currency).amount
+      rescue Money::ConversionError
+        account.balance_money.amount
+      end
     elsif linked_budget_categories.any?
       linked_budget_categories.sum { |bc| bc.budget.budget_category_actual_spending(bc) }
     else
