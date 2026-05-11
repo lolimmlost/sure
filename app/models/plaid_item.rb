@@ -69,6 +69,15 @@ class PlaidItem < ApplicationRecord
     DestroyJob.perform_later(self)
   end
 
+  # Returns true when the given Plaid account mask is on this item's exclusion
+  # list. Used by the importer to skip joint/shared sub-accounts that the user
+  # doesn't want surfaced as Sure accounts but that Plaid keeps reporting from
+  # the institution side.
+  def account_mask_excluded?(mask)
+    return false if mask.blank?
+    Array(excluded_account_masks).include?(mask.to_s)
+  end
+
   def import_latest_plaid_data
     PlaidItem::Importer.new(self, plaid_provider: plaid_provider).import
   end

@@ -1536,6 +1536,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_27_111051) do
     t.string "status", default: "good", null: false
     t.jsonb "raw_payload", default: {}
     t.jsonb "raw_institution_payload", default: {}
+    t.string "excluded_account_masks", default: [], array: true
     t.index ["family_id"], name: "index_plaid_items_on_family_id"
     t.index ["plaid_id"], name: "index_plaid_items_on_plaid_id", unique: true
   end
