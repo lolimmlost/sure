@@ -8,7 +8,10 @@ class PlaidItem::AccountsSnapshot
   end
 
   def accounts
-    @accounts ||= plaid_provider.get_item_accounts(plaid_item.access_token).accounts
+    @accounts ||= plaid_provider
+      .get_item_accounts(plaid_item.access_token)
+      .accounts
+      .reject { |a| plaid_item.account_mask_excluded?(a.mask) }
   end
 
   def get_account_data(account_id)
