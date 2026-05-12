@@ -8,6 +8,11 @@
     expense_period_total = expense_summaries.sum(&:period_actual)
     expense_remaining_total = expense_budget_total - expense_period_total
 
+    # Bifurcate expense envelopes spreadsheet-style: monthly recurring (× 12) vs annual lumps.
+    # annual_budget on a monthly-frequency category already equals (budgeted_spending × 12).
+    monthly_recurring_total = expense_summaries.reject { |cs| cs.budget_category.non_monthly? }.sum(&:annual_budget)
+    non_monthly_total = expense_summaries.select { |cs| cs.budget_category.non_monthly? }.sum(&:annual_budget)
+
     # Determine the actual column label based on period scope
     if annual_plan.period_scoped?
       actual_label = t("reports.annual_budget_performance.period_actual")
@@ -49,6 +54,26 @@
         </p>
         <p class="text-lg font-semibold <%= annual_plan.savings_rate >= 0 ? "text-success" : "text-destructive" %>">
           <%= number_to_percentage(annual_plan.savings_rate, precision: 1) %>
+        </p>
+      </div>
+    </div>
+
+    <%# Bifurcated annual envelope (spreadsheet-style): monthly × 12 vs non-monthly lumps %>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="bg-container-inset rounded-xl p-4">
+        <p class="text-xs font-medium text-secondary uppercase tracking-wide mb-1">
+          <%= t("reports.annual_budget_performance.monthly_recurring_total") %>
+        </p>
+        <p class="text-lg font-semibold text-primary">
+          <%= format_money Money.new(monthly_recurring_total, annual_plan.currency) %>
+        </p>
+      </div>
+      <div class="bg-container-inset rounded-xl p-4">
+        <p class="text-xs font-medium text-secondary uppercase tracking-wide mb-1">
+          <%= t("reports.annual_budget_performance.non_monthly_total") %>
+        </p>
+        <p class="text-lg font-semibold text-primary">
+          <%= format_money Money.new(non_monthly_total, annual_plan.currency) %>
         </p>
       </div>
     </div>
