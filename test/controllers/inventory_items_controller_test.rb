@@ -61,8 +61,7 @@ class InventoryItemsControllerTest < ActionDispatch::IntegrationTest
 
   test "cannot access another family's item" do
     sign_in @other_family_user
-    assert_raises(ActiveRecord::RecordNotFound) do
-      post increment_inventory_item_url(@item)
-    end
+    post increment_inventory_item_url(@item)
+    assert_response :not_found
   end
 end
