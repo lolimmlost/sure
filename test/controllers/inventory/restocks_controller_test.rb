@@ -44,11 +44,11 @@ class Inventory::RestocksControllerTest < ActionDispatch::IntegrationTest
   test "cannot restock from another family's transaction" do
     other_user = users(:empty)
     sign_in other_user
-    assert_raises(ActiveRecord::RecordNotFound) do
-      post inventory_restock_url, params: {
-        transaction_id: @transaction.id,
-        items: {}
-      }
-    end
+    post inventory_restock_url, params: {
+      transaction_id: @transaction.id,
+      items: {}
+    }
+    assert_redirected_to new_inventory_restock_url
+    assert_not_nil flash[:alert]
   end
 end
