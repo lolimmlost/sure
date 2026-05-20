@@ -1,0 +1,31 @@
+<%# locals: (inventory_item:) %>
+
+<% existing_categories = Current.family.inventory_items.where.not(category: [ nil, "" ]).distinct.pluck(:category).sort %>
+
+<%= styled_form_with model: inventory_item, class: "space-y-4", data: { turbo_frame: :_top } do |f| %>
+  <% if inventory_item.errors.any? %>
+    <%= render "shared/form_errors", model: inventory_item %>
+  <% end %>
+
+  <section class="space-y-4">
+    <%= f.text_field :name, label: t(".name"), required: true, autofocus: true %>
+
+    <%= f.text_field :category, label: t(".category"), list: "inventory_categories", placeholder: t(".category_placeholder") %>
+    <datalist id="inventory_categories">
+      <% existing_categories.each do |cat| %>
+        <option value="<%= cat %>"></option>
+      <% end %>
+    </datalist>
+
+    <div class="grid grid-cols-2 gap-4">
+      <%= f.number_field :current_qty, label: t(".current_qty"), min: 0, step: 1 %>
+      <%= f.number_field :restock_threshold, label: t(".restock_threshold"), min: 0, step: 1 %>
+    </div>
+
+    <%= f.text_area :notes, label: t(".notes"), rows: 2 %>
+  </section>
+
+  <section class="flex items-center gap-3">
+    <%= f.submit %>
+  </section>
+<% end %>

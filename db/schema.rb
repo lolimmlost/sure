@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_11_210000) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_19_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -847,6 +847,25 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_11_210000) do
     t.datetime "updated_at", null: false
     t.jsonb "locked_attributes", default: {}
     t.string "subtype"
+  end
+
+  create_table "inventory_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "family_id", null: false
+    t.string "name", null: false
+    t.string "category"
+    t.integer "current_qty", default: 0, null: false
+    t.integer "restock_threshold", default: 0, null: false
+    t.datetime "last_purchased_at"
+    t.uuid "last_transaction_id"
+    t.integer "last_restock_qty"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["family_id", "category"], name: "index_inventory_items_on_family_id_and_category"
+    t.index ["family_id"], name: "index_inventory_items_on_family_id"
+    t.index ["last_transaction_id"], name: "index_inventory_items_on_last_transaction_id"
+    t.check_constraint "current_qty >= 0", name: "inventory_items_current_qty_non_negative"
+    t.check_constraint "restock_threshold >= 0", name: "inventory_items_restock_threshold_non_negative"
   end
 
   create_table "invitations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -1712,6 +1731,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_11_210000) do
   add_foreign_key "imports", "families"
   add_foreign_key "indexa_capital_accounts", "indexa_capital_items"
   add_foreign_key "indexa_capital_items", "families"
+  add_foreign_key "inventory_items", "families"
+  add_foreign_key "inventory_items", "transactions", column: "last_transaction_id", on_delete: :nullify
   add_foreign_key "invitations", "families"
   add_foreign_key "invitations", "users", column: "inviter_id"
   add_foreign_key "llm_usages", "families"

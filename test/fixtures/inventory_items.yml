@@ -1,0 +1,20 @@
+paper_towels:
+  family: dylan_family
+  name: Paper towels 12-pack
+  category: Toiletries
+  current_qty: 6
+  restock_threshold: 2
+
+coffee_beans:
+  family: dylan_family
+  name: Coffee beans 2 lb
+  category: Dry goods
+  current_qty: 1
+  restock_threshold: 3
+
+frozen_pizza:
+  family: dylan_family
+  name: Frozen pizza
+  category: Proteins
+  current_qty: 0
+  restock_threshold: 0

@@ -1,0 +1,72 @@
+---
+en:
+  inventory_items:
+    created: Item added to inventory.
+    updated: Inventory item updated.
+    deleted: Inventory item deleted.
+    index:
+      title: Inventory
+      subtitle: Track what's in your freezer, pantry, and cabinets so you know what to restock.
+      new_item: New item
+      shopping_list: Shopping list
+      restock_from_transaction: Restock from transaction
+      uncategorized: Uncategorized
+      restock_alert:
+        one: 1 item needs restock
+        other: "%{count} items need restock"
+      view_shopping_list: View list
+      empty:
+        title: Nothing tracked yet
+        description: Add your first inventory item to start tracking what you have on hand.
+    inventory_item:
+      restock_pill: Restock
+      last_purchased: "Last purchased %{ago} ago via %{source}"
+      unknown_source: unknown
+      increment: Add one
+      decrement: Use one
+      edit: Edit
+      delete: Delete
+    shopping_list:
+      title: Shopping list
+      subtitle: Items at or below their restock threshold.
+      back_to_inventory: Back to inventory
+      qty_label: "qty %{current} / restock at %{threshold}"
+      restock_from_transaction: Restock from transaction
+      empty:
+        title: All stocked up
+        description: Nothing is at or below its restock threshold right now.
+    new:
+      title: New inventory item
+    edit:
+      title: Edit inventory item
+    form:
+      name: Name
+      category: Category
+      category_placeholder: e.g. Beer, Proteins, Toiletries
+      current_qty: Current quantity
+      restock_threshold: Restock when at or below
+      notes: Notes
+  inventory:
+    restocks:
+      applied:
+        one: Restocked 1 item.
+        other: "Restocked %{count} items."
+      no_items_selected: Pick at least one item to restock.
+      transaction_not_found: That transaction is no longer available.
+      new:
+        title: Restock from transaction
+        subtitle: Pick a recent purchase, then check off which items it restocked.
+        back: Back to inventory
+        pick_transaction: Pick a transaction
+        pick_transaction_hint: Showing your last 30 days of activity. The most recent unclaimed purchase is selected by default.
+        pick_items: Pick items to restock
+        pick_items_hint: Check the items this transaction restocked and adjust quantities as needed.
+        current_qty: "Currently %{qty} on hand"
+        cancel: Cancel
+        apply: Apply restock
+        no_items:
+          title: Add some items first
+          description: You need at least one inventory item before you can restock from a transaction.
+        no_transactions:
+          title: No recent transactions
+          description: We couldn't find any transactions in the last 30 days to restock from.

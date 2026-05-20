@@ -1,0 +1,97 @@
+<% content_for :page_header do %>
+  <div class="space-y-1 mb-6 flex gap-4 justify-between items-center">
+    <div class="space-y-1">
+      <h1 class="text-xl lg:text-3xl font-medium text-primary">
+        <%= t(".title") %>
+      </h1>
+      <p class="text-sm lg:text-base text-secondary">
+        <%= t(".subtitle") %>
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <%= render DS::Link.new(
+        icon: "shopping-cart",
+        text: t(".shopping_list"),
+        variant: "secondary",
+        href: shopping_list_inventory_items_path,
+        class: "hidden lg:inline-flex"
+      ) %>
+
+      <%= render DS::Link.new(
+        icon: "package-check",
+        text: t(".restock_from_transaction"),
+        variant: "secondary",
+        href: new_inventory_restock_path,
+        class: "hidden lg:inline-flex"
+      ) %>
+
+      <%= render DS::Link.new(
+        icon: "plus",
+        text: t(".new_item"),
+        variant: "primary",
+        href: new_inventory_item_path,
+        class: "hidden lg:inline-flex",
+        data: { turbo_frame: "modal" }
+      ) %>
+
+      <%= render DS::Link.new(
+        variant: "icon-inverse",
+        icon: "plus",
+        href: new_inventory_item_path,
+        class: "rounded-full lg:hidden",
+        data: { turbo_frame: "modal" }
+      ) %>
+    </div>
+  </div>
+<% end %>
+
+<% if @items.any? %>
+  <% if @restock_count.positive? %>
+    <div class="mb-4 flex items-center gap-2 p-3 rounded-xl bg-warning/10 text-warning">
+      <%= icon("alert-triangle", size: "sm", color: "current") %>
+      <span class="text-sm font-medium">
+        <%= t(".restock_alert", count: @restock_count) %>
+      </span>
+      <%= render DS::Link.new(
+        text: t(".view_shopping_list"),
+        variant: "ghost",
+        href: shopping_list_inventory_items_path,
+        class: "ml-auto"
+      ) %>
+    </div>
+  <% end %>
+
+  <div class="space-y-6">
+    <% @grouped_items.each do |category, items| %>
+      <section>
+        <h2 class="text-sm font-semibold text-secondary uppercase tracking-wide mb-2">
+          <%= category == InventoryItem::UNCATEGORIZED_KEY ? t(".uncategorized") : category %>
+        </h2>
+        <div class="bg-container rounded-xl shadow-border-xs overflow-hidden divide-y divide-tertiary">
+          <%= render partial: "inventory_items/inventory_item", collection: items, as: :item %>
+        </div>
+      </section>
+    <% end %>
+  </div>
+<% else %>
+  <div class="text-center py-12 bg-container rounded-xl shadow-border-xs">
+    <div class="flex flex-col items-center">
+      <%= render DS::FilledIcon.new(
+        variant: :container,
+        icon: "package",
+        size: "lg"
+      ) %>
+
+      <h3 class="text-primary font-medium mb-1 mt-4"><%= t(".empty.title") %></h3>
+      <p class="text-sm text-secondary mb-4"><%= t(".empty.description") %></p>
+      <%= render DS::Link.new(
+        text: t(".new_item"),
+        variant: "primary",
+        href: new_inventory_item_path,
+        icon: "plus",
+        data: { turbo_frame: "modal" }
+      ) %>
+    </div>
+  </div>
+<% end %>
