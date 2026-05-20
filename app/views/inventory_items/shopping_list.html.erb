@@ -1,0 +1,62 @@
+<% content_for :page_header do %>
+  <div class="space-y-1 mb-6 flex gap-4 justify-between items-center">
+    <div class="space-y-1">
+      <h1 class="text-xl lg:text-3xl font-medium text-primary">
+        <%= t(".title") %>
+      </h1>
+      <p class="text-sm lg:text-base text-secondary">
+        <%= t(".subtitle") %>
+      </p>
+    </div>
+
+    <%= render DS::Link.new(
+      text: t(".back_to_inventory"),
+      variant: "ghost",
+      href: inventory_items_path,
+      icon: "arrow-left"
+    ) %>
+  </div>
+<% end %>
+
+<% if @items.any? %>
+  <div class="bg-container rounded-xl shadow-border-xs overflow-hidden">
+    <ul class="divide-y divide-tertiary">
+      <% @items.each do |item| %>
+        <li class="flex items-center justify-between p-4">
+          <div>
+            <p class="text-sm font-medium text-primary"><%= item.name %></p>
+            <p class="text-xs text-secondary mt-0.5">
+              <%= item.display_category || t("inventory_items.index.uncategorized") %>
+              · <%= t(".qty_label", current: item.current_qty, threshold: item.restock_threshold) %>
+            </p>
+          </div>
+          <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-warning/10 text-warning text-xs font-medium">
+            <%= icon("alert-triangle", size: "sm", color: "current") %>
+            <%= t("inventory_items.inventory_item.restock_pill") %>
+          </span>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+
+  <div class="mt-4 flex justify-end">
+    <%= render DS::Link.new(
+      text: t(".restock_from_transaction"),
+      variant: "primary",
+      icon: "package-check",
+      href: new_inventory_restock_path
+    ) %>
+  </div>
+<% else %>
+  <div class="text-center py-12 bg-container rounded-xl shadow-border-xs">
+    <div class="flex flex-col items-center">
+      <%= render DS::FilledIcon.new(
+        variant: :container,
+        icon: "check-circle",
+        size: "lg"
+      ) %>
+      <h3 class="text-primary font-medium mb-1 mt-4"><%= t(".empty.title") %></h3>
+      <p class="text-sm text-secondary"><%= t(".empty.description") %></p>
+    </div>
+  </div>
+<% end %>

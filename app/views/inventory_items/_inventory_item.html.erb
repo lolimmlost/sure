@@ -1,0 +1,65 @@
+<%# locals: (item:) %>
+
+<%= turbo_frame_tag dom_id(item), class: "block" do %>
+  <div class="flex items-center justify-between gap-3 py-3 px-4 bg-container hover:bg-surface-hover">
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-sm font-medium text-primary truncate"><%= item.name %></span>
+        <% if item.restock? %>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-warning/10 text-warning text-xs font-medium">
+            <%= icon("alert-triangle", size: "sm", color: "current") %>
+            <%= t(".restock_pill") %>
+          </span>
+        <% end %>
+      </div>
+      <% if item.last_purchased_at.present? %>
+        <p class="text-xs text-subdued mt-0.5">
+          <%= t(".last_purchased",
+                ago: time_ago_in_words(item.last_purchased_at),
+                source: item.last_transaction_merchant_name || t(".unknown_source")) %>
+        </p>
+      <% end %>
+    </div>
+
+    <div class="flex items-center gap-1 shrink-0">
+      <%= button_to decrement_inventory_item_path(item),
+            method: :post,
+            class: "inline-flex items-center justify-center w-8 h-8 rounded-lg text-secondary hover:text-primary hover:bg-surface-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed",
+            disabled: item.current_qty.zero?,
+            form: { data: { turbo_stream: true } },
+            "aria-label": t(".decrement") do %>
+        <%= icon("minus", size: "sm") %>
+      <% end %>
+
+      <span class="min-w-[2rem] text-center text-sm font-medium text-primary tabular-nums">
+        <%= item.current_qty %>
+      </span>
+
+      <%= button_to increment_inventory_item_path(item),
+            method: :post,
+            class: "inline-flex items-center justify-center w-8 h-8 rounded-lg text-secondary hover:text-primary hover:bg-surface-hover transition-colors",
+            form: { data: { turbo_stream: true } },
+            "aria-label": t(".increment") do %>
+        <%= icon("plus", size: "sm") %>
+      <% end %>
+
+      <%= render DS::Menu.new do |menu| %>
+        <% menu.with_item(
+          variant: "link",
+          text: t(".edit"),
+          href: edit_inventory_item_path(item),
+          icon: "pencil",
+          data: { turbo_frame: "modal" }
+        ) %>
+        <% menu.with_item(
+          variant: "button",
+          text: t(".delete"),
+          href: inventory_item_path(item),
+          icon: "trash-2",
+          method: :delete,
+          confirm: CustomConfirm.for_resource_deletion(item.name)
+        ) %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

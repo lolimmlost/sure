@@ -1,0 +1,102 @@
+<% content_for :page_header do %>
+  <div class="space-y-1 mb-6">
+    <%= render DS::Link.new(
+      text: t(".back"),
+      variant: "ghost",
+      href: inventory_items_path,
+      icon: "arrow-left",
+      class: "mb-2"
+    ) %>
+    <h1 class="text-xl lg:text-3xl font-medium text-primary"><%= t(".title") %></h1>
+    <p class="text-sm lg:text-base text-secondary"><%= t(".subtitle") %></p>
+  </div>
+<% end %>
+
+<% if @items.empty? %>
+  <div class="text-center py-12 bg-container rounded-xl shadow-border-xs">
+    <div class="flex flex-col items-center">
+      <%= render DS::FilledIcon.new(variant: :container, icon: "package", size: "lg") %>
+      <h3 class="text-primary font-medium mb-1 mt-4"><%= t(".no_items.title") %></h3>
+      <p class="text-sm text-secondary mb-4"><%= t(".no_items.description") %></p>
+      <%= render DS::Link.new(
+        text: t("inventory_items.index.new_item"),
+        variant: "primary",
+        href: new_inventory_item_path,
+        icon: "plus",
+        data: { turbo_frame: "modal" }
+      ) %>
+    </div>
+  </div>
+<% elsif @transactions.empty? %>
+  <div class="text-center py-12 bg-container rounded-xl shadow-border-xs">
+    <%= render DS::FilledIcon.new(variant: :container, icon: "receipt", size: "lg") %>
+    <h3 class="text-primary font-medium mb-1 mt-4"><%= t(".no_transactions.title") %></h3>
+    <p class="text-sm text-secondary"><%= t(".no_transactions.description") %></p>
+  </div>
+<% else %>
+  <%= form_with url: inventory_restock_path, method: :post, class: "space-y-6" do |f| %>
+    <section class="bg-container rounded-xl shadow-border-xs p-5 space-y-3">
+      <h2 class="text-sm font-semibold text-secondary uppercase tracking-wide"><%= t(".pick_transaction") %></h2>
+      <p class="text-xs text-subdued"><%= t(".pick_transaction_hint") %></p>
+
+      <div class="space-y-2 max-h-72 overflow-y-auto">
+        <% @transactions.each do |txn| %>
+          <% entry = txn.entry %>
+          <label class="flex items-start gap-3 p-3 rounded-lg border border-primary cursor-pointer hover:bg-surface-hover has-[:checked]:border-2 has-[:checked]:border-blue-500">
+            <%= f.radio_button :transaction_id, txn.id, checked: txn.id == @selected_transaction&.id, class: "mt-1" %>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-center gap-2">
+                <span class="text-sm font-medium text-primary truncate">
+                  <%= txn.merchant&.name || entry.name %>
+                </span>
+                <span class="text-sm text-primary font-medium tabular-nums shrink-0">
+                  <%= format_money(entry.amount_money) %>
+                </span>
+              </div>
+              <p class="text-xs text-secondary mt-0.5">
+                <%= l(entry.date, format: :long) %> · <%= entry.account.name %>
+              </p>
+            </div>
+          </label>
+        <% end %>
+      </div>
+    </section>
+
+    <section class="bg-container rounded-xl shadow-border-xs p-5 space-y-3">
+      <h2 class="text-sm font-semibold text-secondary uppercase tracking-wide"><%= t(".pick_items") %></h2>
+      <p class="text-xs text-subdued"><%= t(".pick_items_hint") %></p>
+
+      <div class="divide-y divide-tertiary">
+        <% InventoryItem.by_category(@items).each do |category, items| %>
+          <div class="py-2">
+            <p class="text-xs font-semibold text-secondary uppercase tracking-wide py-2">
+              <%= category == InventoryItem::UNCATEGORIZED_KEY ? t("inventory_items.index.uncategorized") : category %>
+            </p>
+            <% items.each do |item| %>
+              <div class="flex items-center justify-between gap-3 py-2">
+                <label class="flex items-center gap-3 flex-1 cursor-pointer">
+                  <%= check_box_tag "items[#{item.id}][selected]", "1", false, class: "rounded border-primary" %>
+                  <div>
+                    <p class="text-sm font-medium text-primary"><%= item.name %></p>
+                    <p class="text-xs text-secondary">
+                      <%= t(".current_qty", qty: item.current_qty) %>
+                      <% if item.restock? %>
+                        · <span class="text-warning"><%= t("inventory_items.inventory_item.restock_pill") %></span>
+                      <% end %>
+                    </p>
+                  </div>
+                </label>
+                <%= number_field_tag "items[#{item.id}][qty]", 1, min: 1, step: 1, class: "w-20 form-field text-right tabular-nums" %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </section>
+
+    <section class="flex items-center gap-3 justify-end">
+      <%= render DS::Link.new(text: t(".cancel"), variant: "ghost", href: inventory_items_path) %>
+      <%= f.submit t(".apply"), class: "btn btn--primary" %>
+    </section>
+  <% end %>
+<% end %>

@@ -1185,6 +1185,25 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_27_111051) do
     t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'read'::character varying, 'dismissed'::character varying, 'expired'::character varying]::text[])", name: "chk_insights_status"
   end
 
+  create_table "inventory_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "family_id", null: false
+    t.string "name", null: false
+    t.string "category"
+    t.integer "current_qty", default: 0, null: false
+    t.integer "restock_threshold", default: 0, null: false
+    t.datetime "last_purchased_at"
+    t.uuid "last_transaction_id"
+    t.integer "last_restock_qty"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["family_id", "category"], name: "index_inventory_items_on_family_id_and_category"
+    t.index ["family_id"], name: "index_inventory_items_on_family_id"
+    t.index ["last_transaction_id"], name: "index_inventory_items_on_last_transaction_id"
+    t.check_constraint "current_qty >= 0", name: "inventory_items_current_qty_non_negative"
+    t.check_constraint "restock_threshold >= 0", name: "inventory_items_restock_threshold_non_negative"
+  end
+
   create_table "invitations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "email"
     t.string "role"
@@ -2395,6 +2414,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_27_111051) do
   add_foreign_key "indexa_capital_accounts", "indexa_capital_items"
   add_foreign_key "indexa_capital_items", "families"
   add_foreign_key "insights", "families"
+  add_foreign_key "inventory_items", "families"
+  add_foreign_key "inventory_items", "transactions", column: "last_transaction_id", on_delete: :nullify
   add_foreign_key "invitations", "families"
   add_foreign_key "invitations", "users", column: "inviter_id"
   add_foreign_key "kraken_accounts", "kraken_items"
