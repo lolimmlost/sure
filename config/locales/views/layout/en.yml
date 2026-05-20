@@ -8,6 +8,7 @@ en:
         budgets: Budgets
         goals: Goals
         home: Home
+        inventory: Inventory
         reports: Reports
         transactions: Transactions
     auth:

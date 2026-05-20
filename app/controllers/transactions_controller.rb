@@ -128,6 +128,8 @@ class TransactionsController < ApplicationController
       end
     end
 
+    previous_account = @entry.account
+
     if @entry.update(permitted_params)
       transaction = @entry.transaction
 

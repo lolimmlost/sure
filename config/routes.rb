@@ -244,6 +244,19 @@ Rails.application.routes.draw do
 
   resources :goals
 
+  resources :inventory_items, path: "inventory", except: :show do
+    member do
+      post :increment
+      post :decrement
+    end
+    collection do
+      get :shopping_list
+    end
+  end
+  namespace :inventory do
+    resource :restock, only: %i[new create]
+  end
+
   resources :family_merchants, only: %i[index new create edit update destroy] do
     collection do
       get :merge

@@ -75,7 +75,7 @@ class ReportsControllerTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_select "h3", text: I18n.t("reports.summary.total_income")
     assert_select "h3", text: I18n.t("reports.summary.total_expenses")
-    assert_select "h3", text: I18n.t("reports.summary.net_savings")
+    assert_select "h3", text: I18n.t("reports.summary.savings")
   end
 
   test "index builds trends data" do
