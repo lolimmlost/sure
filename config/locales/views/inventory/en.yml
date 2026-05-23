@@ -15,6 +15,7 @@ en:
         one: 1 item needs restock
         other: "%{count} items need restock"
       view_shopping_list: View list
+      what_can_i_make: What can I make?
       map_recipes:
         one: Map 1 item to recipes
         other: Map %{count} items to recipes
@@ -48,6 +49,30 @@ en:
       applied:
         one: Mapped 1 item to a Mealie food.
         other: Mapped %{count} items to Mealie foods.
+    recipes:
+      title: What can I make?
+      subtitle:
+        one: Searching recipes against 1 mapped item on hand.
+        other: Searching recipes against %{count} mapped items on hand.
+      back: Back to inventory
+      max_missing_label: "Allow missing ingredients:"
+      have_all: Have it all
+      missing_count:
+        one: 1 missing
+        other: "%{count} missing"
+      missing_label: "Missing:"
+      servings:
+        one: 1 serving
+        other: "%{count} servings"
+      open_in_mealie: Open in Mealie
+      error_prefix: "Couldn't reach Mealie:"
+      empty_unmapped:
+        title: Map your inventory first
+        description: Recipe matching needs at least one inventory item linked to a Mealie food. Use the bulk mapper to get started.
+        cta: Map inventory now
+      empty_no_matches:
+        title: Nothing matches at this missing-ingredient threshold
+        description: Try increasing the "Allow missing ingredients" dropdown, mapping more inventory items, or stocking more ingredients.
     shopping_list:
       title: Shopping list
       subtitle: Items at or below their restock threshold.

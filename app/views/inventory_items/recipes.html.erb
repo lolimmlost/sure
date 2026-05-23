@@ -1,0 +1,117 @@
+<% content_for :page_header do %>
+  <div class="space-y-1 mb-6 flex gap-4 justify-between items-center">
+    <div class="space-y-1">
+      <h1 class="text-xl lg:text-3xl font-medium text-primary">
+        <%= t(".title") %>
+      </h1>
+      <p class="text-sm lg:text-base text-secondary">
+        <%= t(".subtitle", count: @food_count) %>
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <%= render DS::Link.new(
+        icon: "arrow-left",
+        text: t(".back"),
+        variant: "ghost",
+        href: inventory_items_path
+      ) %>
+    </div>
+  </div>
+<% end %>
+
+<%= form_with url: recipes_inventory_items_path, method: :get, data: { controller: "auto-submit-form" }, class: "mb-4" do %>
+  <div class="inline-flex items-center gap-2 px-3 py-2 bg-container rounded-lg shadow-border-xs">
+    <label for="max_missing" class="text-sm text-secondary"><%= t(".max_missing_label") %></label>
+    <%= select_tag :max_missing,
+          options_for_select((0..5).map { |n| [ n, n ] }, @max_missing || 3),
+          class: "form-field__input text-sm w-16",
+          data: { action: "change->auto-submit-form#submit" } %>
+  </div>
+<% end %>
+
+<% if @mealie_error.present? %>
+  <div class="p-4 rounded-xl bg-destructive/10 text-destructive text-sm">
+    <%= t(".error_prefix") %> <%= @mealie_error %>
+  </div>
+<% elsif @food_count.zero? %>
+  <div class="text-center py-12 bg-container rounded-xl shadow-border-xs">
+    <div class="flex flex-col items-center">
+      <%= render DS::FilledIcon.new(variant: :container, icon: "package", size: "lg") %>
+      <h3 class="text-primary font-medium mb-1 mt-4"><%= t(".empty_unmapped.title") %></h3>
+      <p class="text-sm text-secondary mb-4 max-w-md"><%= t(".empty_unmapped.description") %></p>
+      <%= render DS::Link.new(text: t(".empty_unmapped.cta"), variant: "primary", icon: "wand-2", href: suggest_mealie_mappings_inventory_items_path) %>
+    </div>
+  </div>
+<% elsif @suggestions.empty? %>
+  <div class="text-center py-12 bg-container rounded-xl shadow-border-xs">
+    <div class="flex flex-col items-center">
+      <%= render DS::FilledIcon.new(variant: :container, icon: "chef-hat", size: "lg") %>
+      <h3 class="text-primary font-medium mb-1 mt-4"><%= t(".empty_no_matches.title") %></h3>
+      <p class="text-sm text-secondary mb-4 max-w-md"><%= t(".empty_no_matches.description") %></p>
+    </div>
+  </div>
+<% else %>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <% @suggestions.each do |s| %>
+      <% recipe = s["recipe"] %>
+      <% missing = s["missingFoods"].to_a %>
+      <% recipe_url = "#{@mealie_base_url}/g/#{@mealie_group_slug}/r/#{recipe['slug']}" %>
+
+      <div class="bg-container rounded-xl shadow-border-xs overflow-hidden flex flex-col">
+        <div class="p-4 flex-1">
+          <div class="flex items-start justify-between gap-3 mb-2">
+            <h3 class="text-base font-medium text-primary leading-tight">
+              <%= link_to recipe["name"], recipe_url, target: "_blank", rel: "noopener", class: "hover:underline" %>
+            </h3>
+            <% if missing.empty? %>
+              <span class="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-success/10 text-success text-xs font-medium">
+                <%= icon("check-circle", size: "sm", color: "current") %>
+                <%= t(".have_all") %>
+              </span>
+            <% else %>
+              <span class="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-warning/10 text-warning text-xs font-medium">
+                <%= t(".missing_count", count: missing.size) %>
+              </span>
+            <% end %>
+          </div>
+
+          <% if recipe["description"].present? %>
+            <p class="text-xs text-secondary line-clamp-2 mb-3"><%= recipe["description"] %></p>
+          <% end %>
+
+          <div class="flex items-center gap-3 text-xs text-subdued mb-3">
+            <% if recipe["totalTime"].present? %>
+              <span class="inline-flex items-center gap-1">
+                <%= icon("clock", size: "sm", color: "current") %>
+                <%= recipe["totalTime"] %>
+              </span>
+            <% end %>
+            <% if recipe["recipeYieldQuantity"].to_f.positive? %>
+              <span class="inline-flex items-center gap-1">
+                <%= icon("users", size: "sm", color: "current") %>
+                <%= t(".servings", count: recipe["recipeYieldQuantity"].to_i) %>
+              </span>
+            <% end %>
+          </div>
+
+          <% if missing.any? %>
+            <div class="text-xs">
+              <span class="text-secondary font-medium"><%= t(".missing_label") %></span>
+              <span class="text-primary"><%= missing.map { |f| f["name"] }.join(", ") %></span>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="px-4 py-2 border-t border-tertiary flex items-center justify-end">
+          <%= link_to t(".open_in_mealie"),
+                recipe_url,
+                target: "_blank",
+                rel: "noopener",
+                class: "text-xs text-secondary hover:text-primary inline-flex items-center gap-1" %>
+          <%= icon("external-link", size: "sm", color: "current") %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% end %>

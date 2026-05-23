@@ -251,6 +251,7 @@ Rails.application.routes.draw do
     end
     collection do
       get :shopping_list
+      get :recipes
       get :suggest_mealie_mappings
       post :bulk_apply_mealie_mappings
     end
