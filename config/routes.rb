@@ -414,6 +414,7 @@ Rails.application.routes.draw do
     collection do
       get :shopping_list
       get :recipes
+      post :add_recipe_missing_to_shopping_list
       get :suggest_mealie_mappings
       post :bulk_apply_mealie_mappings
     end

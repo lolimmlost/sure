@@ -91,6 +91,52 @@ class InventoryItemsController < ApplicationController
     end
   end
 
+  def add_recipe_missing_to_shopping_list
+    recipe = Mealie::Recipe.active.find_by(slug: params[:slug])
+    if recipe.nil?
+      redirect_to recipes_inventory_items_path, alert: t(".recipe_not_found")
+      return
+    end
+
+    on_hand_ids = Current.family.inventory_items
+                                .where("current_qty > 0")
+                                .where.not(mealie_food_id: nil)
+                                .pluck(:mealie_food_id)
+
+    missing_foods = recipe.recipe_foods
+                          .where.not(mealie_food_id: nil)
+                          .where.not(mealie_food_id: on_hand_ids)
+                          .includes(:food)
+                          .map(&:food)
+                          .compact
+                          .uniq
+
+    added = 0
+    promoted = 0
+    InventoryItem.transaction do
+      missing_foods.each do |food|
+        existing = Current.family.inventory_items.find_by(mealie_food_id: food.id)
+        if existing
+          if existing.restock_threshold < 1
+            existing.update!(restock_threshold: 1)
+            promoted += 1
+          end
+        else
+          Current.family.inventory_items.create!(
+            name: food.name,
+            current_qty: 0,
+            restock_threshold: 1,
+            mealie_food: food
+          )
+          added += 1
+        end
+      end
+    end
+
+    flash[:notice] = t(".result", added: added, promoted: promoted, recipe: recipe.name)
+    redirect_to shopping_list_inventory_items_path
+  end
+
   def suggest_mealie_mappings
     @suggestions = Inventory::FoodMatcher.new(family: Current.family).suggestions_for_unmapped
     @available_foods = Mealie::Food.active.order(:name)
