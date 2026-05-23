@@ -3,7 +3,7 @@ class InventoryItemsController < ApplicationController
 
   def index
     @items = Current.family.inventory_items
-                    .includes(:mealie_food, last_transaction: { entry: :merchant })
+                    .includes(:mealie_food, last_transaction: [ :merchant, :entry ])
                     .alphabetically
     @grouped_items = InventoryItem.by_category(@items)
     @restock_count = @items.count(&:restock?)
@@ -12,7 +12,7 @@ class InventoryItemsController < ApplicationController
 
   def shopping_list
     @items = Current.family.inventory_items
-                    .includes(last_transaction: { entry: :merchant })
+                    .includes(last_transaction: [ :merchant, :entry ])
                     .needs_restock
                     .alphabetically
   end
