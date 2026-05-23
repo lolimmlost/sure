@@ -26,16 +26,15 @@ class Inventory::FoodMatcher
     item_tokens = tokenize(item.name)
     return nil if item_tokens.empty?
 
-    best_food, best_score = nil, 0
-    @indexed_foods.each do |food, food_tokens|
+    best = @indexed_foods.filter_map do |food, food_tokens|
       shared = (item_tokens & food_tokens).size
-      next if shared <= best_score
-      best_food, best_score = food, shared
-    end
+      next if shared.zero?
+      confidence = shared.to_f / [ item_tokens.size, food_tokens.size ].max
+      [ confidence, food ]
+    end.max_by { |confidence, _| confidence }
 
-    return nil if best_score.zero?
-    denom = [ item_tokens.size, @indexed_foods.find { |f, _| f == best_food }[1].size ].max
-    Suggestion.new(item: item, food: best_food, confidence: best_score.to_f / denom)
+    return nil if best.nil?
+    Suggestion.new(item: item, food: best[1], confidence: best[0])
   end
 
   private
