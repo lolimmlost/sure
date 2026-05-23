@@ -11,6 +11,14 @@
 
     <div class="flex items-center gap-2">
       <%= render DS::Link.new(
+        icon: "chef-hat",
+        text: t(".what_can_i_make"),
+        variant: "secondary",
+        href: recipes_inventory_items_path,
+        class: "hidden lg:inline-flex"
+      ) %>
+
+      <%= render DS::Link.new(
         icon: "shopping-cart",
         text: t(".shopping_list"),
         variant: "secondary",

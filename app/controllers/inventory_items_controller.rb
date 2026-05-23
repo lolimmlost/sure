@@ -63,6 +63,33 @@ class InventoryItemsController < ApplicationController
     end
   end
 
+  def recipes
+    on_hand_items = Current.family.inventory_items
+                                  .includes(:mealie_food)
+                                  .where("current_qty > 0")
+                                  .where.not(mealie_food_id: nil)
+    @food_count = on_hand_items.count
+    @mealie_base_url = Rails.configuration.x.mealie.base_url
+    @mealie_group_slug = Rails.configuration.x.mealie.group_slug
+
+    if @food_count.zero?
+      @suggestions = []
+      return
+    end
+
+    food_ids = on_hand_items.pluck(:mealie_food_id).uniq
+    max_missing = params.fetch(:max_missing, 3).to_i.clamp(0, 10)
+
+    begin
+      response = Mealie::Client.new.recipe_suggestions(food_ids: food_ids, max_missing: max_missing, limit: 50)
+      @suggestions = (response["items"] || []).sort_by { |s| s["missingFoods"].to_a.size }
+      @max_missing = max_missing
+    rescue Mealie::Client::Error, Mealie::Client::NotConfiguredError => e
+      @suggestions = []
+      @mealie_error = e.message
+    end
+  end
+
   def suggest_mealie_mappings
     @suggestions = Inventory::FoodMatcher.new(family: Current.family).suggestions_for_unmapped
     @available_foods = Mealie::Food.active.order(:name)

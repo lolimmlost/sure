@@ -30,6 +30,16 @@ class Mealie::Client
     get("/api/recipes/#{slug}")
   end
 
+  # Returns recipe suggestions for the given food IDs, including how many
+  # ingredients are missing per recipe. Sorted server-side by # missing asc.
+  # Response: { "items": [ { "recipe": {...}, "missingFoods": [...], "missingTools": [...] } ] }
+  def recipe_suggestions(food_ids:, max_missing: 5, limit: 25)
+    return { "items" => [] } if food_ids.blank?
+    query = food_ids.map { |id| [ "foods", id ] }
+    query.concat([ [ "maxMissingFoods", max_missing ], [ "limit", limit ], [ "includeFoodsOnHand", "true" ] ])
+    get_with_params("/api/recipes/suggestions", query)
+  end
+
   private
     def paginate(path)
       page = 1
@@ -44,6 +54,15 @@ class Mealie::Client
 
     def get(path, params = {})
       response = connection.get(path, params)
+      raise Error, "Mealie #{response.status}: #{response.body}" unless response.success?
+      response.body
+    end
+
+    # Faraday's #get only accepts a Hash for params, which collapses repeated
+    # keys. Suggestions need ?foods=A&foods=B&foods=C, so build the query manually.
+    def get_with_params(path, query_pairs)
+      query_string = URI.encode_www_form(query_pairs)
+      response = connection.get("#{path}?#{query_string}")
       raise Error, "Mealie #{response.status}: #{response.body}" unless response.success?
       response.body
     end
