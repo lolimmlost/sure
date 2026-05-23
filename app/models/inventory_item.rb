@@ -56,8 +56,8 @@ class InventoryItem < ApplicationRecord
   end
 
   def last_transaction_merchant_name
-    return nil unless last_transaction&.entry
-    last_transaction.entry.merchant&.name || last_transaction.entry.name
+    return nil unless last_transaction
+    last_transaction.merchant&.name || last_transaction.entry&.name
   end
 
   def display_category
