@@ -54,6 +54,22 @@
       ) %>
 
       <%= render DS::Link.new(
+        variant: "icon",
+        icon: "chef-hat",
+        href: recipes_inventory_items_path,
+        class: "lg:hidden",
+        title: t(".what_can_i_make")
+      ) %>
+
+      <%= render DS::Link.new(
+        variant: "icon",
+        icon: "shopping-cart",
+        href: shopping_list_inventory_items_path,
+        class: "lg:hidden",
+        title: t(".shopping_list")
+      ) %>
+
+      <%= render DS::Link.new(
         variant: "icon-inverse",
         icon: "plus",
         href: new_inventory_item_path,
