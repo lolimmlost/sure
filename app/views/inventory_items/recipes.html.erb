@@ -24,7 +24,7 @@
   <div class="inline-flex items-center gap-2 px-3 py-2 bg-container rounded-lg shadow-border-xs">
     <label for="max_missing" class="text-sm text-secondary"><%= t(".max_missing_label") %></label>
     <%= select_tag :max_missing,
-          options_for_select((0..5).map { |n| [ n, n ] }, @max_missing || 3),
+          options_for_select([ 0, 2, 5, 10, 15, 20 ].map { |n| [ n, n ] }, @max_missing || 10),
           class: "form-field__input text-sm w-16",
           data: { action: "change->auto-submit-form#submit" } %>
   </div>

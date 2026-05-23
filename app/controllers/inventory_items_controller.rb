@@ -79,7 +79,7 @@ class InventoryItemsController < ApplicationController
 
     local_food_ids = on_hand_items.pluck(:mealie_food_id).uniq
     external_food_ids = Mealie::Food.where(id: local_food_ids).pluck(:external_id)
-    max_missing = params.fetch(:max_missing, 3).to_i.clamp(0, 10)
+    max_missing = params.fetch(:max_missing, 10).to_i.clamp(0, 20)
 
     begin
       response = Mealie::Client.new.recipe_suggestions(food_ids: external_food_ids, max_missing: max_missing, limit: 50)
