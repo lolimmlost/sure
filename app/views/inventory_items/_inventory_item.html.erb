@@ -11,6 +11,13 @@
             <%= t(".restock_pill") %>
           </span>
         <% end %>
+        <% if item.mapped_to_mealie? %>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface text-secondary text-xs"
+                title="<%= t(".mealie_linked_to", name: item.mealie_food.name) %>">
+            <%= icon("link", size: "sm", color: "current") %>
+            <%= item.mealie_food.name %>
+          </span>
+        <% end %>
       </div>
       <% if item.last_purchased_at.present? %>
         <p class="text-xs text-subdued mt-0.5">

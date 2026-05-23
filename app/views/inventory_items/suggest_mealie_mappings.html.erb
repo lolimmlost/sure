@@ -1,0 +1,60 @@
+<% content_for :page_header do %>
+  <div class="space-y-1 mb-6">
+    <h1 class="text-xl lg:text-3xl font-medium text-primary">
+      <%= t(".title") %>
+    </h1>
+    <p class="text-sm lg:text-base text-secondary">
+      <%= t(".subtitle") %>
+    </p>
+  </div>
+<% end %>
+
+<% if @suggestions.any? %>
+  <%= form_with url: bulk_apply_mealie_mappings_inventory_items_path,
+                method: :post,
+                class: "space-y-4" do |f| %>
+
+    <div class="bg-container rounded-xl shadow-border-xs overflow-hidden">
+      <div class="px-4 py-3 border-b border-tertiary text-xs text-secondary uppercase tracking-wide flex items-center justify-between">
+        <span><%= t(".your_item") %></span>
+        <span><%= t(".suggested_match") %></span>
+      </div>
+
+      <div class="divide-y divide-tertiary">
+        <% @suggestions.each do |s| %>
+          <div class="flex items-center justify-between gap-3 px-4 py-3">
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-primary truncate"><%= s.item.name %></p>
+              <p class="text-xs text-subdued">
+                <%= s.item.category.presence || t(".uncategorized") %>
+                &middot;
+                <%= t(".confidence", pct: (s.confidence * 100).round) %>
+              </p>
+            </div>
+
+            <div class="w-72 shrink-0">
+              <%= select_tag "mappings[#{s.item.id}]",
+                    options_from_collection_for_select(@available_foods, :id, :name, s.food.id),
+                    include_blank: t(".skip"),
+                    class: "form-field__input text-sm" %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-3">
+      <%= render DS::Link.new(text: t(".cancel"), variant: "ghost", href: inventory_items_path) %>
+      <%= f.submit t(".apply"), class: "btn btn--primary" %>
+    </div>
+  <% end %>
+<% else %>
+  <div class="text-center py-12 bg-container rounded-xl shadow-border-xs">
+    <div class="flex flex-col items-center">
+      <%= render DS::FilledIcon.new(variant: :container, icon: "check-circle", size: "lg") %>
+      <h3 class="text-primary font-medium mb-1 mt-4"><%= t(".empty.title") %></h3>
+      <p class="text-sm text-secondary mb-4"><%= t(".empty.description") %></p>
+      <%= render DS::Link.new(text: t(".back"), variant: "primary", href: inventory_items_path) %>
+    </div>
+  </div>
+<% end %>

@@ -1,6 +1,7 @@
 <%# locals: (inventory_item:) %>
 
 <% existing_categories = Current.family.inventory_items.where.not(category: [ nil, "" ]).distinct.pluck(:category).sort %>
+<% mealie_foods = Mealie::Food.active.order(:name) %>
 
 <%= styled_form_with model: inventory_item, class: "space-y-4", data: { turbo_frame: :_top } do |f| %>
   <% if inventory_item.errors.any? %>
@@ -21,6 +22,20 @@
       <%= f.number_field :current_qty, label: t(".current_qty"), min: 0, step: 1 %>
       <%= f.number_field :restock_threshold, label: t(".restock_threshold"), min: 0, step: 1 %>
     </div>
+
+    <div class="space-y-1">
+      <%= f.text_field :mealie_food_name_input,
+            label: t(".mealie_food"),
+            value: inventory_item.mealie_food&.name,
+            list: "mealie_foods",
+            placeholder: t(".mealie_food_placeholder") %>
+      <p class="text-xs text-subdued"><%= t(".mealie_food_hint") %></p>
+    </div>
+    <datalist id="mealie_foods">
+      <% mealie_foods.each do |food| %>
+        <option value="<%= food.name %>"></option>
+      <% end %>
+    </datalist>
 
     <%= f.text_area :notes, label: t(".notes"), rows: 2 %>
   </section>
