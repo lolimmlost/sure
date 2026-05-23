@@ -42,3 +42,9 @@ refresh_demo_family:
   class: "DemoFamilyRefreshJob"
   queue: "scheduled"
   description: "Refreshes demo family data and emails super admins with daily usage summary"
+
+mealie_sync:
+  cron: "0 7 * * *" # daily at 7:00 AM UTC (~midnight Pacific)
+  class: "MealieSyncJob"
+  queue: "low_priority"
+  description: "Pulls Mealie foods + recipes into local cache for pantry recipe matching"
