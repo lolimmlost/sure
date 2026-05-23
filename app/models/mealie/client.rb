@@ -35,9 +35,8 @@ class Mealie::Client
   # Response: { "items": [ { "recipe": {...}, "missingFoods": [...], "missingTools": [...] } ] }
   def recipe_suggestions(food_ids:, max_missing: 5, limit: 25)
     return { "items" => [] } if food_ids.blank?
-    query = food_ids.map { |id| [ "foods", id ] }
-    query.concat([ [ "maxMissingFoods", max_missing ], [ "limit", limit ], [ "includeFoodsOnHand", "true" ] ])
-    get_with_params("/api/recipes/suggestions", query)
+    get("/api/recipes/suggestions",
+        { foods: food_ids, maxMissingFoods: max_missing, limit: limit, includeFoodsOnHand: "true" })
   end
 
   private
@@ -58,17 +57,14 @@ class Mealie::Client
       response.body
     end
 
-    # Faraday's #get only accepts a Hash for params, which collapses repeated
-    # keys. Suggestions need ?foods=A&foods=B&foods=C, so build the query manually.
-    def get_with_params(path, query_pairs)
-      query_string = URI.encode_www_form(query_pairs)
-      response = connection.get("#{path}?#{query_string}")
-      raise Error, "Mealie #{response.status}: #{response.body}" unless response.success?
-      response.body
-    end
-
     def connection
-      @connection ||= Faraday.new(url: @base_url) do |conn|
+      @connection ||= Faraday.new(
+        url: @base_url,
+        # Mealie's /suggestions needs ?foods=A&foods=B (repeated keys).
+        # Default encoder collapses arrays into the last value; flat encoder
+        # expands them as repeated params, which is what we want.
+        request: { params_encoder: Faraday::FlatParamsEncoder }
+      ) do |conn|
         conn.request :json
         conn.request :retry, max: 2, interval: 0.5, backoff_factor: 2
         conn.response :json, content_type: /\bjson$/
