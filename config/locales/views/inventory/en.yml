@@ -49,6 +49,9 @@ en:
       applied:
         one: Mapped 1 item to a Mealie food.
         other: Mapped %{count} items to Mealie foods.
+    add_recipe_missing_to_shopping_list:
+      recipe_not_found: That recipe is no longer in your local cache. Try a manual sync.
+      result: "%{recipe}: added %{added} new items, flagged %{promoted} existing for restock."
     recipes:
       title: What can I make?
       subtitle:
@@ -65,6 +68,12 @@ en:
         one: 1 serving
         other: "%{count} servings"
       open_in_mealie: Open in Mealie
+      add_missing:
+        one: Add 1 to shopping list
+        other: Add %{count} to shopping list
+      add_confirm:
+        one: "Add the 1 missing ingredient for %{recipe} to your shopping list?"
+        other: "Add %{count} missing ingredients for %{recipe} to your shopping list?"
       error_prefix: "Couldn't reach Mealie:"
       empty_unmapped:
         title: Map your inventory first

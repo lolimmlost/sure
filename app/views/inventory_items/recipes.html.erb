@@ -103,13 +103,27 @@
           <% end %>
         </div>
 
-        <div class="px-4 py-2 border-t border-tertiary flex items-center justify-end">
-          <%= link_to t(".open_in_mealie"),
-                recipe_url,
+        <div class="px-4 py-2 border-t border-tertiary flex items-center justify-between gap-2">
+          <% if missing.any? %>
+            <%= button_to add_recipe_missing_to_shopping_list_inventory_items_path,
+                  params: { slug: recipe["slug"] },
+                  method: :post,
+                  class: "text-xs text-secondary hover:text-primary inline-flex items-center gap-1",
+                  data: { turbo_confirm: t(".add_confirm", count: missing.size, recipe: recipe["name"]) } do %>
+              <%= icon("shopping-cart", size: "sm", color: "current") %>
+              <%= t(".add_missing", count: missing.size) %>
+            <% end %>
+          <% else %>
+            <span></span>
+          <% end %>
+
+          <%= link_to recipe_url,
                 target: "_blank",
                 rel: "noopener",
-                class: "text-xs text-secondary hover:text-primary inline-flex items-center gap-1" %>
-          <%= icon("external-link", size: "sm", color: "current") %>
+                class: "text-xs text-secondary hover:text-primary inline-flex items-center gap-1" do %>
+            <%= t(".open_in_mealie") %>
+            <%= icon("external-link", size: "sm", color: "current") %>
+          <% end %>
         </div>
       </div>
     <% end %>
