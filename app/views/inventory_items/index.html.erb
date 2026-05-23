@@ -18,6 +18,16 @@
         class: "hidden lg:inline-flex"
       ) %>
 
+      <% if @unmapped_count.to_i.positive? %>
+        <%= render DS::Link.new(
+          icon: "wand-2",
+          text: t(".map_recipes", count: @unmapped_count),
+          variant: "secondary",
+          href: suggest_mealie_mappings_inventory_items_path,
+          class: "hidden lg:inline-flex"
+        ) %>
+      <% end %>
+
       <%= render DS::Link.new(
         icon: "package-check",
         text: t(".restock_from_transaction"),

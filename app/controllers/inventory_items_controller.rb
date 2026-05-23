@@ -3,10 +3,11 @@ class InventoryItemsController < ApplicationController
 
   def index
     @items = Current.family.inventory_items
-                    .includes(last_transaction: { entry: :merchant })
+                    .includes(:mealie_food, last_transaction: { entry: :merchant })
                     .alphabetically
     @grouped_items = InventoryItem.by_category(@items)
     @restock_count = @items.count(&:restock?)
+    @unmapped_count = @items.count { |i| !i.mapped_to_mealie? }
   end
 
   def shopping_list
@@ -62,6 +63,24 @@ class InventoryItemsController < ApplicationController
     end
   end
 
+  def suggest_mealie_mappings
+    @suggestions = Inventory::FoodMatcher.new(family: Current.family).suggestions_for_unmapped
+    @available_foods = Mealie::Food.active.order(:name)
+  end
+
+  def bulk_apply_mealie_mappings
+    pairs = params.fetch(:mappings, {}).to_unsafe_h
+    applied = 0
+    Current.family.inventory_items.where(id: pairs.keys).find_each do |item|
+      food_id = pairs[item.id].presence
+      next if food_id.blank?
+      next unless Mealie::Food.active.where(id: food_id).exists?
+      item.update_column(:mealie_food_id, food_id)
+      applied += 1
+    end
+    redirect_to inventory_items_path, notice: t(".applied", count: applied)
+  end
+
   private
 
     def set_inventory_item
@@ -70,7 +89,7 @@ class InventoryItemsController < ApplicationController
 
     def inventory_item_params
       params.require(:inventory_item).permit(
-        :name, :category, :current_qty, :restock_threshold, :notes
+        :name, :category, :current_qty, :restock_threshold, :notes, :mealie_food_name_input
       )
     end
 end

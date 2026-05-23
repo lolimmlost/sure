@@ -3,6 +3,11 @@ class InventoryItem < ApplicationRecord
 
   belongs_to :family
   belongs_to :last_transaction, class_name: "Transaction", optional: true
+  belongs_to :mealie_food, class_name: "Mealie::Food", optional: true
+
+  attr_accessor :mealie_food_name_input
+
+  before_validation :resolve_mealie_food_from_input
 
   validates :name, presence: true
   validates :category, length: { maximum: 100 }, allow_blank: true
@@ -58,4 +63,20 @@ class InventoryItem < ApplicationRecord
   def display_category
     category.presence
   end
+
+  def mapped_to_mealie?
+    mealie_food_id.present?
+  end
+
+  private
+    def resolve_mealie_food_from_input
+      return if mealie_food_name_input.nil?
+      name = mealie_food_name_input.to_s.strip
+      if name.blank?
+        self.mealie_food = nil
+      else
+        match = Mealie::Food.active.where("LOWER(name) = ?", name.downcase).first
+        self.mealie_food = match if match
+      end
+    end
 end

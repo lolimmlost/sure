@@ -15,17 +15,39 @@ en:
         one: 1 item needs restock
         other: "%{count} items need restock"
       view_shopping_list: View list
+      map_recipes:
+        one: Map 1 item to recipes
+        other: Map %{count} items to recipes
       empty:
         title: Nothing tracked yet
         description: Add your first inventory item to start tracking what you have on hand.
     inventory_item:
       restock_pill: Restock
+      mealie_linked_to: "Linked to Mealie food: %{name}"
       last_purchased: "Last purchased %{ago} ago via %{source}"
       unknown_source: unknown
       increment: Add one
       decrement: Use one
       edit: Edit
       delete: Delete
+    suggest_mealie_mappings:
+      title: Map inventory to Mealie foods
+      subtitle: Confirm the best guess for each item, change the selection, or skip. Saved mappings power the recipe matcher.
+      your_item: Your item
+      suggested_match: Suggested Mealie food
+      uncategorized: Uncategorized
+      confidence: "match %{pct}%"
+      skip: "— skip —"
+      cancel: Cancel
+      apply: Apply mappings
+      empty:
+        title: All items already mapped
+        description: Every inventory item has a Mealie food linked. Add new items or re-parse Mealie recipes to surface new suggestions.
+      back: Back to inventory
+    bulk_apply_mealie_mappings:
+      applied:
+        one: Mapped 1 item to a Mealie food.
+        other: Mapped %{count} items to Mealie foods.
     shopping_list:
       title: Shopping list
       subtitle: Items at or below their restock threshold.
@@ -46,6 +68,9 @@ en:
       current_qty: Current quantity
       restock_threshold: Restock when at or below
       notes: Notes
+      mealie_food: Mealie food (optional)
+      mealie_food_placeholder: Type to search synced foods…
+      mealie_food_hint: Links this item to a Mealie food so it counts toward "what can I make" matching.
   inventory:
     restocks:
       applied:
