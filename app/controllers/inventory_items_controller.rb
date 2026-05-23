@@ -77,11 +77,12 @@ class InventoryItemsController < ApplicationController
       return
     end
 
-    food_ids = on_hand_items.pluck(:mealie_food_id).uniq
+    local_food_ids = on_hand_items.pluck(:mealie_food_id).uniq
+    external_food_ids = Mealie::Food.where(id: local_food_ids).pluck(:external_id)
     max_missing = params.fetch(:max_missing, 3).to_i.clamp(0, 10)
 
     begin
-      response = Mealie::Client.new.recipe_suggestions(food_ids: food_ids, max_missing: max_missing, limit: 50)
+      response = Mealie::Client.new.recipe_suggestions(food_ids: external_food_ids, max_missing: max_missing, limit: 50)
       @suggestions = (response["items"] || []).sort_by { |s| s["missingFoods"].to_a.size }
       @max_missing = max_missing
     rescue Mealie::Client::Error, Mealie::Client::NotConfiguredError => e
