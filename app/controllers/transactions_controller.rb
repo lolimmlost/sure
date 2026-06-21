@@ -521,8 +521,10 @@ class TransactionsController < ApplicationController
       accessible_accounts_scope = accessible_accounts
 
       @account_currencies = accessible_accounts_scope.pluck(:id, :currency).to_h
+      # NOTE: intentionally not scoped by .manual — that scope excludes accounts
+      # with account_providers records, which hid Plaid-linked accounts (e.g. SoFi)
+      # that still need manual transaction entry. Show all active accessible accounts.
       @manual_accounts = accessible_accounts_scope
-        .manual
         .active
         .alphabetically
         .includes(:account_providers, logo_attachment: :blob)
