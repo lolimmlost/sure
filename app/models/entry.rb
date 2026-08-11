@@ -436,14 +436,6 @@ class Entry < ApplicationRecord
     end
   end
 
-  private
-
-    def account_not_changed_when_linked
-      if external_id.present?
-        errors.add(:account_id, "cannot be changed for provider-linked entries")
-      end
-    end
-
   class << self
     def search(params)
       EntrySearch.new(params).build_query(all)
@@ -521,6 +513,12 @@ class Entry < ApplicationRecord
   end
 
   private
+
+    def account_not_changed_when_linked
+      if external_id.present?
+        errors.add(:account_id, "cannot be changed for provider-linked entries")
+      end
+    end
 
     def cannot_unexclude_split_parent
       return unless excluded_changed?(from: true, to: false) && split_parent?
