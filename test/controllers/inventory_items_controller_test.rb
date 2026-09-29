@@ -64,4 +64,26 @@ class InventoryItemsControllerTest < ActionDispatch::IntegrationTest
     post increment_inventory_item_url(@item)
     assert_response :not_found
   end
+
+  test "update saves location and expiry" do
+    patch inventory_item_url(@item), params: { inventory_item: { location: "Fridge", expires_on: "2026-10-05" } }
+    assert_redirected_to inventory_items_url
+    @item.reload
+    assert_equal "Fridge", @item.location
+    assert_equal Date.new(2026, 10, 5), @item.expires_on
+  end
+
+  test "index flags expired and expiring items" do
+    travel_to Date.new(2026, 9, 29) do
+      @item.update!(expires_on: Date.new(2026, 9, 28), location: "Garage")
+      inventory_items(:coffee_beans).update!(expires_on: Date.new(2026, 9, 30))
+
+      get inventory_items_url
+      assert_response :success
+      assert_select "span", text: /Expired/
+      assert_select "span", text: /Expires tomorrow/
+      assert_select "span", text: /Garage/
+      assert_select "span", text: /2 items are expired or expire within 3 days/
+    end
+  end
 end

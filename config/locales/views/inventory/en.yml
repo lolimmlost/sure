@@ -15,6 +15,9 @@ en:
         one: 1 item needs restock
         other: "%{count} items need restock"
       view_shopping_list: View list
+      expiry_alert:
+        one: "1 item is expired or expires within %{days} days"
+        other: "%{count} items are expired or expire within %{days} days"
       what_can_i_make: What can I make?
       map_recipes:
         one: Map 1 item to recipes
@@ -24,6 +27,11 @@ en:
         description: Add your first inventory item to start tracking what you have on hand.
     inventory_item:
       restock_pill: Restock
+      expired_pill: Expired
+      expiring_pill:
+        zero: Expires today
+        one: Expires tomorrow
+        other: "Expires in %{count}d"
       mealie_linked_to: "Linked to Mealie food: %{name}"
       last_purchased: "Last purchased %{ago} ago via %{source}"
       unknown_source: unknown
@@ -99,6 +107,14 @@ en:
       name: Name
       category: Category
       category_placeholder: e.g. Beer, Proteins, Toiletries
+      location: Location
+      location_placeholder: e.g. Pantry, Fridge, Freezer
+      location_defaults:
+        - Pantry
+        - Fridge
+        - Freezer
+        - Garage
+      expires_on: Expires on
       current_qty: Current quantity
       restock_threshold: Restock when at or below
       notes: Notes
@@ -121,6 +137,8 @@ en:
         pick_items: Pick items to restock
         pick_items_hint: Check the items this transaction restocked and adjust quantities as needed.
         current_qty: "Currently %{qty} on hand"
+        expires_on_label: Expires on (optional)
+        qty_label: Quantity
         cancel: Cancel
         apply: Apply restock
         no_items:

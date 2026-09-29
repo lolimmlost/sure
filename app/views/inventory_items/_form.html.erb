@@ -1,6 +1,8 @@
 <%# locals: (inventory_item:) %>
 
 <% existing_categories = Current.family.inventory_items.where.not(category: [ nil, "" ]).distinct.pluck(:category).sort %>
+<% existing_locations = Current.family.inventory_items.where.not(location: [ nil, "" ]).distinct.pluck(:location) %>
+<% location_options = (existing_locations + t(".location_defaults")).uniq(&:downcase).sort %>
 <% mealie_foods = Mealie::Food.active.order(:name) %>
 
 <%= styled_form_with model: inventory_item, class: "space-y-4", data: { turbo_frame: :_top } do |f| %>
@@ -15,6 +17,16 @@
     <datalist id="inventory_categories">
       <% existing_categories.each do |cat| %>
         <option value="<%= cat %>"></option>
+      <% end %>
+    </datalist>
+
+    <div class="grid grid-cols-2 gap-4">
+      <%= f.text_field :location, label: t(".location"), list: "inventory_locations", placeholder: t(".location_placeholder") %>
+      <%= f.date_field :expires_on, label: t(".expires_on") %>
+    </div>
+    <datalist id="inventory_locations">
+      <% location_options.each do |loc| %>
+        <option value="<%= loc %>"></option>
       <% end %>
     </datalist>
 

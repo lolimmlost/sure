@@ -11,6 +11,24 @@
             <%= t(".restock_pill") %>
           </span>
         <% end %>
+        <% if item.expired? %>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-destructive/10 text-destructive text-xs font-medium">
+            <%= icon("calendar-x", size: "sm", color: "current") %>
+            <%= t(".expired_pill") %>
+          </span>
+        <% elsif item.expiring_soon? %>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-warning/10 text-warning text-xs font-medium"
+                title="<%= l(item.expires_on, format: :long) %>">
+            <%= icon("calendar-clock", size: "sm", color: "current") %>
+            <%= t(".expiring_pill", count: item.days_until_expiry) %>
+          </span>
+        <% end %>
+        <% if item.location.present? %>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface text-secondary text-xs">
+            <%= icon("map-pin", size: "sm", color: "current") %>
+            <%= item.location %>
+          </span>
+        <% end %>
         <% if item.mapped_to_mealie? %>
           <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface text-secondary text-xs"
                 title="<%= t(".mealie_linked_to", name: item.mealie_food.name) %>">

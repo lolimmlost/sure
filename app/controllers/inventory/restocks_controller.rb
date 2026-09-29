@@ -18,7 +18,7 @@ class Inventory::RestocksController < ApplicationController
         qty = entry[:qty].to_i
         next if qty <= 0
 
-        item.restock_from!(@transaction, qty: qty)
+        item.restock_from!(@transaction, qty: qty, expires_on: entry[:expires_on].presence)
         applied += 1
       end
     end

@@ -7,6 +7,7 @@ class InventoryItemsController < ApplicationController
                     .alphabetically
     @grouped_items = InventoryItem.by_category(@items)
     @restock_count = @items.count(&:restock?)
+    @expiry_alert_count = @items.count { |item| item.expired? || item.expiring_soon? }
     @unmapped_count = @items.count { |i| !i.mapped_to_mealie? }
   end
 
@@ -163,7 +164,8 @@ class InventoryItemsController < ApplicationController
 
     def inventory_item_params
       params.require(:inventory_item).permit(
-        :name, :category, :current_qty, :restock_threshold, :notes, :mealie_food_name_input
+        :name, :category, :location, :expires_on, :current_qty, :restock_threshold, :notes,
+        :mealie_food_name_input
       )
     end
 end

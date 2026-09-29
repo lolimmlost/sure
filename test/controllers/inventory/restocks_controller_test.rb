@@ -51,4 +51,19 @@ class Inventory::RestocksControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to new_inventory_restock_url
     assert_not_nil flash[:alert]
   end
+
+  test "create sets expiry on lines that give one and leaves others alone" do
+    @coffee_beans.update!(expires_on: Date.new(2026, 10, 1))
+
+    post inventory_restock_url, params: {
+      transaction_id: @transaction.id,
+      items: {
+        @paper_towels.id => { selected: "1", qty: "1", expires_on: "2026-12-01" },
+        @coffee_beans.id => { selected: "1", qty: "1", expires_on: "" }
+      }
+    }
+
+    assert_equal Date.new(2026, 12, 1), @paper_towels.reload.expires_on
+    assert_equal Date.new(2026, 10, 1), @coffee_beans.reload.expires_on
+  end
 end

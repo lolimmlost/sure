@@ -86,7 +86,17 @@
                     </p>
                   </div>
                 </label>
-                <%= number_field_tag "items[#{item.id}][qty]", 1, min: 1, step: 1, class: "w-20 form-field text-right tabular-nums" %>
+                <div class="flex items-center gap-2 shrink-0">
+                  <%= date_field_tag "items[#{item.id}][expires_on]", nil,
+                        class: "w-36 form-field text-sm",
+                        autocomplete: "off",
+                        title: t(".expires_on_label"),
+                        "aria-label": t(".expires_on_label") %>
+                  <%= number_field_tag "items[#{item.id}][qty]", 1, min: 1, step: 1,
+                        class: "w-20 form-field text-right tabular-nums",
+                        autocomplete: "off",
+                        "aria-label": t(".qty_label") %>
+                </div>
               </div>
             <% end %>
           </div>

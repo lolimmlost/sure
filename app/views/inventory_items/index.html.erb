@@ -96,6 +96,15 @@
     </div>
   <% end %>
 
+  <% if @expiry_alert_count.positive? %>
+    <div class="mb-4 flex items-center gap-2 p-3 rounded-xl bg-warning/10 text-warning">
+      <%= icon("calendar-clock", size: "sm", color: "current") %>
+      <span class="text-sm font-medium">
+        <%= t(".expiry_alert", count: @expiry_alert_count, days: InventoryItem::EXPIRING_SOON_DAYS) %>
+      </span>
+    </div>
+  <% end %>
+
   <div class="space-y-6">
     <% @grouped_items.each do |category, items| %>
       <section>
