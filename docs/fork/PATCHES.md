@@ -27,6 +27,7 @@ listed and cherry-picked with the `--grep` above. Older commits are listed by ha
 | `db/schema.rb` | fork tables/columns | Never take a full re-dump. Re-apply only the fork blocks listed under **schema.rb fork blocks** |
 | `config/routes.rb` | inventory + API routes | New fork routes are marked with a `# FORK:` comment |
 | `config/schedule.yml` | `mealie_sync` cron | Append-only |
+| `docs/api/openapi.yaml` | inventory paths (generated) | Take upstream's file, re-run `rake rswag:specs:swaggerize`. The committed file lagged upstream specs by 11 hunks on 2026-09-29 |
 | `app/models/family.rb` | `has_many :inventory_items` | One line |
 | `app/views/layouts/application.html.erb` + `config/locales/views/layout/en.yml` | Inventory nav entry | Small, re-apply by hand |
 
@@ -37,6 +38,11 @@ Fork-only files (`app/**/inventory*`, `app/models/mealie/**`, `config/locales/vi
 commit is next replayed.
 
 ## schema.rb fork blocks
+
+**Format:** our `schema.rb` is still `Schema[7.2]`, but the app runs Rails 8.1 and upstream now commits
+`Schema[8.1]` (alphabetical columns). A normal `db:schema:dump` rewrites ~1,700 lines. Until the next
+rebase, hand-edit `schema.rb` for fork migrations. At the rebase, take upstream's 8.1 file and re-add
+the blocks below.
 
 Prod's schema **differs** from `db/schema.rb` (see "Known prod-only schema" below), so on a rebase:
 take upstream's `schema.rb`, then re-add only these blocks:
@@ -80,7 +86,12 @@ take upstream's `schema.rb`, then re-add only these blocks:
 - `44e0401d5` Inventory recipes: default max_missing to 10, extend dropdown to 20
 - `3d6bf6848` Inventory recipes: fix max-missing dropdown not refreshing
 - `e21feb796` Tests: assert response status (not raise) for cross-family inventory access
-- *(2026-09-29+ commits: see `--grep='^Fork-Topic: inventory'`)*
+- *2026-09-29, branch `feature/inventory-expiry-ha` (`Fork-Topic: inventory`; not yet on main):*
+  - `0a6531012` Inventory: add missing Mealie tables to schema.rb
+  - `dcb2c5f44` Inventory: add expires_on and location columns
+  - `de90510a1` Inventory: expiry scopes and predicates on InventoryItem
+  - `1d50ae9a2` Inventory: expiry and location in the UI
+  - `4df31d09b` Inventory: API for Home Assistant
 
 ### prod-reconciliation
 - `48b635f51` Safe-deploy reconciliation: back up fork goal tables + rename classification for prod
@@ -93,6 +104,14 @@ take upstream's `schema.rb`, then re-add only these blocks:
 - `a811755fb` Fix duplicate merge deleting transactions due to self-referencing match
 - `ecbd82d43` Fix budget FX: use nearest exchange rate when exact date is missing
 - `73e63a1d7` Entry: relocate provider-link validation into existing private block
+
+## Known pre-existing test failures (2026-09-29, not fork-inventory related)
+
+- Minitest (6,241 runs): `ImportsControllerTest#test_shows_disabled_account-dependent_imports...`
+  (span count) and `Transaction::MergeWithDuplicateTest#test_returns_false_and_does_not_destroy_pending_entry...`
+  (conflicts with fork commit `cea557a7c`'s provider-link guard)
+- RSpec/rswag `spec/requests/api/v1`: 81 failures across 15 files (missing `users(:empty)` /
+  `api_keys(:active_key)` fixtures in RSpec, auth drift)
 
 ## Known prod-only schema (intentional; do NOT re-add to schema.rb)
 

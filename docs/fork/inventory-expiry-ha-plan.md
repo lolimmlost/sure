@@ -3,6 +3,20 @@
 Branch `feature/inventory-expiry-ha`, cut from `pantry-rebased` at `73e63a1d7` (== prod).
 All commits carry the `Fork-Topic: inventory` trailer (see `PATCHES.md`).
 
+## Status (2026-09-29): Parts 0 and A–D done on the branch, all gates green, NOT deployed
+
+| Part | Commit | Gate result |
+|---|---|---|
+| 0 schema.rb repair | `0a6531012` | drift gone (40 to 35 lines); fresh DB has the Mealie tables; targeted tests 2 errors to 0 |
+| A migration | `dcb2c5f44` | 86-row checksum identical before, after and after rollback; 3ms; schema.rb diff = version + 2 lines |
+| B model | `de90510a1` | 25 inventory tests green; rubocop clean |
+| C UI | `1d50ae9a2` | 32 tests green; i18n, rubocop and erb_lint clean. **Manual click-through still pending** |
+| D API | `4df31d09b` | 7 Minitest (tz test mutation-checked) plus 7 rswag green; rswag 81 failures unchanged; brakeman: only the pre-existing transactions warning |
+| Final | | full suite 6,241 runs, no new failures, 2 fixed; fresh-restore rehearsal passes; smoke test on prod data: 20 items need restock |
+
+**Found along the way:** the prod family timezone is `Etc/GMT+12` (UTC-12), so "today" lags Pacific by
+5h. Fix it in Sure's settings, not in code.
+
 ## Goal
 Keep the pantry in Sure (source of truth, linked to transactions and Mealie) and make it useful from
 Home Assistant: know what's low, what expires soon, and adjust stock from HA.
