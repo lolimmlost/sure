@@ -54,6 +54,8 @@ take upstream's `schema.rb`, then re-add only these blocks:
 
 ### deploy: Coolify build-from-source
 - `980ab2dba` Coolify build-from-source deploy config for compose.example.yml
+- *2026-09-29:* `pull_policy: never` on `worker` (Coolify's newer pre-deploy
+  `pull --ignore-buildable` otherwise fails on the local-only `sure:${SOURCE_COMMIT}` image)
 
 ### imports: Fidelity / Buddy
 - `34ffa084f` Add Buddy and Fidelity import types with TwelveData rate limit handling
