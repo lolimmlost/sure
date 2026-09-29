@@ -640,6 +640,15 @@ Rails.application.routes.draw do
       resources :security_prices, only: [ :index, :show ]
       resources :tags, only: [ :index, :show, :create, :update, :destroy ]
 
+      # FORK: pantry inventory for Home Assistant
+      resources :inventory_items, only: [ :index ] do
+        get :summary, on: :collection
+        member do
+          post :increment
+          post :decrement
+        end
+      end
+
       resources :transactions, only: [ :index, :show, :create, :update, :destroy ]
       resources :trades, only: [ :index, :show, :create, :update, :destroy ]
       resources :holdings, only: [ :index, :show ]

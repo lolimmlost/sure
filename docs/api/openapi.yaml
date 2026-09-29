@@ -5707,6 +5707,369 @@ paths:
                   type: string
                   description: CSV imports only. Column value that marks an amount
                     as an inflow when using custom_column strategy
+  "/api/v1/inventory_items":
+    get:
+      summary: List inventory items
+      tags:
+      - Inventory
+      security:
+      - apiKeyAuth: []
+      parameters:
+      - name: filter
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - needs_restock
+          - expiring
+          - expired
+        description: Only items that need restock, expire within 3 days, or are expired
+      responses:
+        '200':
+          description: inventory items listed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    name:
+                      type: string
+                    location:
+                      type: string
+                      nullable: true
+                    current_qty:
+                      type: integer
+                    restock_threshold:
+                      type: integer
+                    expires_on:
+                      type: string
+                      format: date
+                      nullable: true
+                    days_left:
+                      type: integer
+                      nullable: true
+                      description: Days until expiry in the family time zone; negative
+                        once expired
+                    category:
+                      type: string
+                      nullable: true
+                    needs_restock:
+                      type: boolean
+                    expired:
+                      type: boolean
+                    expiring_soon:
+                      type: boolean
+                    last_purchased_at:
+                      type: string
+                      format: date-time
+                      nullable: true
+                    created_at:
+                      type: string
+                      format: date-time
+                    updated_at:
+                      type: string
+                      format: date-time
+                  required:
+                  - id
+                  - name
+                  - current_qty
+                  - restock_threshold
+                  - needs_restock
+                  - expired
+                  - expiring_soon
+        '422':
+          description: unknown filter
+  "/api/v1/inventory_items/summary":
+    get:
+      summary: Inventory summary (for Home Assistant sensors)
+      tags:
+      - Inventory
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          description: summary returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  as_of:
+                    type: string
+                    format: date
+                  expiring_soon_days:
+                    type: integer
+                  restock_count:
+                    type: integer
+                  expiring_soon_count:
+                    type: integer
+                  expired_count:
+                    type: integer
+                  restock:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                        location:
+                          type: string
+                          nullable: true
+                        current_qty:
+                          type: integer
+                        restock_threshold:
+                          type: integer
+                        expires_on:
+                          type: string
+                          format: date
+                          nullable: true
+                        days_left:
+                          type: integer
+                          nullable: true
+                          description: Days until expiry in the family time zone;
+                            negative once expired
+                      required:
+                      - id
+                      - name
+                      - current_qty
+                      - restock_threshold
+                  expiring_soon:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                        location:
+                          type: string
+                          nullable: true
+                        current_qty:
+                          type: integer
+                        restock_threshold:
+                          type: integer
+                        expires_on:
+                          type: string
+                          format: date
+                          nullable: true
+                        days_left:
+                          type: integer
+                          nullable: true
+                          description: Days until expiry in the family time zone;
+                            negative once expired
+                      required:
+                      - id
+                      - name
+                      - current_qty
+                      - restock_threshold
+                  expired:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                        location:
+                          type: string
+                          nullable: true
+                        current_qty:
+                          type: integer
+                        restock_threshold:
+                          type: integer
+                        expires_on:
+                          type: string
+                          format: date
+                          nullable: true
+                        days_left:
+                          type: integer
+                          nullable: true
+                          description: Days until expiry in the family time zone;
+                            negative once expired
+                      required:
+                      - id
+                      - name
+                      - current_qty
+                      - restock_threshold
+                required:
+                - as_of
+                - restock_count
+                - expiring_soon_count
+                - expired_count
+                - restock
+                - expiring_soon
+                - expired
+  "/api/v1/inventory_items/{id}/increment":
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    - name: by
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+      description: How many to add or remove (default 1)
+    post:
+      summary: Add stock
+      tags:
+      - Inventory
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          description: item updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  location:
+                    type: string
+                    nullable: true
+                  current_qty:
+                    type: integer
+                  restock_threshold:
+                    type: integer
+                  expires_on:
+                    type: string
+                    format: date
+                    nullable: true
+                  days_left:
+                    type: integer
+                    nullable: true
+                    description: Days until expiry in the family time zone; negative
+                      once expired
+                  category:
+                    type: string
+                    nullable: true
+                  needs_restock:
+                    type: boolean
+                  expired:
+                    type: boolean
+                  expiring_soon:
+                    type: boolean
+                  last_purchased_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                  created_at:
+                    type: string
+                    format: date-time
+                  updated_at:
+                    type: string
+                    format: date-time
+                required:
+                - id
+                - name
+                - current_qty
+                - restock_threshold
+                - needs_restock
+                - expired
+                - expiring_soon
+        '404':
+          description: item not found
+  "/api/v1/inventory_items/{id}/decrement":
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    - name: by
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+      description: How many to add or remove (default 1)
+    post:
+      summary: Use stock (floors at zero)
+      tags:
+      - Inventory
+      security:
+      - apiKeyAuth: []
+      responses:
+        '200':
+          description: item updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  location:
+                    type: string
+                    nullable: true
+                  current_qty:
+                    type: integer
+                  restock_threshold:
+                    type: integer
+                  expires_on:
+                    type: string
+                    format: date
+                    nullable: true
+                  days_left:
+                    type: integer
+                    nullable: true
+                    description: Days until expiry in the family time zone; negative
+                      once expired
+                  category:
+                    type: string
+                    nullable: true
+                  needs_restock:
+                    type: boolean
+                  expired:
+                    type: boolean
+                  expiring_soon:
+                    type: boolean
+                  last_purchased_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                  created_at:
+                    type: string
+                    format: date-time
+                  updated_at:
+                    type: string
+                    format: date-time
+                required:
+                - id
+                - name
+                - current_qty
+                - restock_threshold
+                - needs_restock
+                - expired
+                - expiring_soon
+        '404':
+          description: item not found
   "/api/v1/merchants":
     get:
       summary: List merchants
