@@ -95,6 +95,7 @@ services:
 
   worker:
     image: sure:${SOURCE_COMMIT:-latest}
+    pull_policy: never
     command: bundle exec sidekiq
     volumes:
       - app-storage:/rails/storage
