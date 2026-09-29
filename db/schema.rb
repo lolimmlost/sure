@@ -1195,11 +1195,13 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_11_000000) do
     t.uuid "last_transaction_id"
     t.integer "last_restock_qty"
     t.text "notes"
+    t.uuid "mealie_food_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["family_id", "category"], name: "index_inventory_items_on_family_id_and_category"
     t.index ["family_id"], name: "index_inventory_items_on_family_id"
     t.index ["last_transaction_id"], name: "index_inventory_items_on_last_transaction_id"
+    t.index ["mealie_food_id"], name: "index_inventory_items_on_mealie_food_id"
     t.check_constraint "current_qty >= 0", name: "inventory_items_current_qty_non_negative"
     t.check_constraint "restock_threshold >= 0", name: "inventory_items_restock_threshold_non_negative"
   end
@@ -1344,6 +1346,45 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_11_000000) do
     t.string "base_url"
     t.index ["family_id"], name: "index_lunchflow_items_on_family_id"
     t.index ["status"], name: "index_lunchflow_items_on_status"
+  end
+
+  create_table "mealie_foods", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "deleted_at"
+    t.uuid "external_id", null: false
+    t.datetime "external_updated_at"
+    t.string "name", null: false
+    t.string "plural_name"
+    t.datetime "updated_at", null: false
+    t.index ["deleted_at"], name: "index_mealie_foods_on_deleted_at"
+    t.index ["external_id"], name: "index_mealie_foods_on_external_id", unique: true
+  end
+
+  create_table "mealie_recipe_foods", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.uuid "mealie_food_id"
+    t.uuid "mealie_recipe_id", null: false
+    t.text "note"
+    t.decimal "quantity", precision: 12, scale: 4
+    t.string "unit"
+    t.datetime "updated_at", null: false
+    t.index ["mealie_food_id"], name: "index_mealie_recipe_foods_on_mealie_food_id"
+    t.index ["mealie_recipe_id", "mealie_food_id"], name: "idx_on_mealie_recipe_id_mealie_food_id_5405948c70"
+    t.index ["mealie_recipe_id"], name: "index_mealie_recipe_foods_on_mealie_recipe_id"
+  end
+
+  create_table "mealie_recipes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "deleted_at"
+    t.text "description"
+    t.uuid "external_id", null: false
+    t.datetime "external_updated_at"
+    t.string "name", null: false
+    t.string "slug", null: false
+    t.datetime "updated_at", null: false
+    t.index ["deleted_at"], name: "index_mealie_recipes_on_deleted_at"
+    t.index ["external_id"], name: "index_mealie_recipes_on_external_id", unique: true
+    t.index ["slug"], name: "index_mealie_recipes_on_slug", unique: true
   end
 
   create_table "merchants", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -2415,6 +2456,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_11_000000) do
   add_foreign_key "indexa_capital_items", "families"
   add_foreign_key "insights", "families"
   add_foreign_key "inventory_items", "families"
+  add_foreign_key "inventory_items", "mealie_foods", on_delete: :nullify
   add_foreign_key "inventory_items", "transactions", column: "last_transaction_id", on_delete: :nullify
   add_foreign_key "invitations", "families"
   add_foreign_key "invitations", "users", column: "inviter_id"
@@ -2423,6 +2465,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_11_000000) do
   add_foreign_key "llm_usages", "families"
   add_foreign_key "lunchflow_accounts", "lunchflow_items"
   add_foreign_key "lunchflow_items", "families"
+  add_foreign_key "mealie_recipe_foods", "mealie_foods"
+  add_foreign_key "mealie_recipe_foods", "mealie_recipes"
   add_foreign_key "merchants", "families"
   add_foreign_key "mercury_accounts", "mercury_items"
   add_foreign_key "mercury_items", "families"
