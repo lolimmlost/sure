@@ -80,4 +80,48 @@ class InventoryItemTest < ActiveSupport::TestCase
     assert_not_includes ids, @paper_towels.id
     assert_not_includes ids, @frozen_pizza.id
   end
+
+  test "expired and expiring_within scopes split on today in the current zone" do
+    travel_to Date.new(2026, 9, 29) do
+      @paper_towels.update!(expires_on: Date.new(2026, 9, 28))
+      @coffee_beans.update!(expires_on: Date.new(2026, 9, 29))
+      @frozen_pizza.update!(expires_on: Date.new(2026, 10, 2))
+      later = @family.inventory_items.create!(name: "Rice", expires_on: Date.new(2026, 10, 3))
+
+      assert_equal [ @paper_towels.id ], InventoryItem.expired.pluck(:id)
+      soon = InventoryItem.expiring_within(3).pluck(:id)
+      assert_includes soon, @coffee_beans.id, "expiring today counts as soon, not expired"
+      assert_includes soon, @frozen_pizza.id
+      assert_not_includes soon, later.id
+      assert_not_includes soon, @paper_towels.id
+    end
+  end
+
+  test "expiry predicates and days_until_expiry" do
+    travel_to Date.new(2026, 9, 29) do
+      assert_nil @paper_towels.days_until_expiry
+      assert_not @paper_towels.expired?
+      assert_not @paper_towels.expiring_soon?
+
+      @paper_towels.expires_on = Date.new(2026, 9, 28)
+      assert @paper_towels.expired?
+      assert_not @paper_towels.expiring_soon?
+
+      @paper_towels.expires_on = Date.new(2026, 10, 2)
+      assert_equal 3, @paper_towels.days_until_expiry
+      assert @paper_towels.expiring_soon?
+      assert_not @paper_towels.expiring_soon?(within: 2)
+    end
+  end
+
+  test "restock_from! sets expires_on only when given" do
+    transaction = transactions(:one)
+    @paper_towels.update!(expires_on: Date.new(2026, 10, 1))
+
+    @paper_towels.restock_from!(transaction, qty: 1)
+    assert_equal Date.new(2026, 10, 1), @paper_towels.reload.expires_on
+
+    @paper_towels.restock_from!(transaction, qty: 1, expires_on: Date.new(2026, 11, 1))
+    assert_equal Date.new(2026, 11, 1), @paper_towels.reload.expires_on
+  end
 end
